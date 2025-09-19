@@ -24,7 +24,7 @@ conda create -n parkinglot python=3.12 -y
 conda activate parkinglot
 ```
 
-### 4. Install dependencies
+### 4. Install dependencies (from inside `backend/`)
 Since `requirements.txt` is included in this repo, just run:
 ```bash
 pip install -r requirements.txt
