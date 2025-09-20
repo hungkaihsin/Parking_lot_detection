@@ -144,3 +144,108 @@ docker compose exec db psql -U postgres -d parkinglot
 - **start.sh** waits for the DB, runs `alembic upgrade head`, then starts Uvicorn with reload for development.
 - **docker-compose.yml** defines `db`, `api`, and (optionally) Adminer on port `8080`.
 - Keep `.env` out of git; commit `.env.example` with safe defaults.
+
+
+---
+
+## 🐳 Docker-Only Workflow (no local Python)
+
+> Use this if you want to run **everything inside containers**.
+
+### Start API + Postgres
+```bash
+# from backend/
+docker compose up -d --build
+```
+This builds the API image and starts `db` (Postgres) and `api` (FastAPI). The API startup script waits for DB, runs migrations, then launches Uvicorn.
+
+### Run commands inside the API container
+```bash
+# open a shell in the api container
+docker compose exec api bash
+
+# now you're inside Docker:
+alembic current
+alembic revision --autogenerate -m "update schema"
+alembic upgrade head
+pytest -q              # if you have tests
+python app/seed.py     # run any one-off scripts
+exit
+```
+
+### Check the DB (inside its container)
+```bash
+docker compose exec db psql -U postgres -d parkinglot -c "\dt"
+```
+
+### Logs & hot reload
+```bash
+docker compose logs -f api
+```
+
+### Stop / clean
+```bash
+docker compose down        # stop
+docker compose down -v     # stop and DELETE DB volume (wipes data)
+```
+
+---
+
+## 📁 Recommended Repo Layout (data & models)
+
+Keep big datasets **outside** `backend/` and small deployable weights **inside** `backend/`:
+
+```
+repo-root/
+├─ backend/
+│  ├─ app/
+│  ├─ models/
+│  │  ├─ det/
+│  │  │  └─ veh_v0/
+│  │  │     ├─ weights/
+│  │  │     │  └─ best.pt
+│  │  │     ├─ data.yaml
+│  │  │     ├─ params.json
+│  │  │     └─ metrics.json
+│  └─ .env
+├─ data/
+│  ├─ raw/
+│  │  └─ car_spec_1945_2020.csv
+│  └─ processed/
+│     └─ car_specs_v0_filtered.csv
+├─ training/
+│  └─ runs/               # large training artifacts
+└─ notebooks/
+```
+
+**.env examples**
+```
+# backend/.env
+DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
+MODEL_DIR=backend/models/det/veh_v0/weights
+CAR_SPEC_PATH=./data/processed/car_specs_v0_filtered.csv
+```
+
+**.gitignore hints**
+```
+data/raw/*
+training/runs/*
+**/weights/*.pt
+**/weights/*.onnx
+**/weights/*.engine
+.env
+```
+
+---
+
+## 🧪 One-off: run a Python module inside Docker (no shell)
+```bash
+docker compose exec api python app/your_module.py
+```
+
+## 🔧 Install new Python deps (persistently)
+1) Add the package to `backend/requirements.txt`  
+2) Rebuild:
+```bash
+docker compose up -d --build
+```
