@@ -175,7 +175,7 @@ exit
 
 ### Check the DB (inside its container)
 ```bash
-docker compose exec db psql -U postgres -d parkinglot -c "\dt"
+docker compose exec db psql -U postgres -d parkinglot
 ```
 
 ### Logs & hot reload
