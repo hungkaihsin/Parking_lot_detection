@@ -17,20 +17,7 @@ cd backend   # IMPORTANT: run all commands from inside the backend folder
 - Open Docker Desktop before running any commands.  
   (You should see the whale icon running in your menu bar/system tray.)
 
-### 3. Create & activate Python environment
-We recommend Conda or venv. Example with Conda:
-```bash
-conda create -n parkinglot python=3.12 -y
-conda activate parkinglot
-```
-
-### 4. Install dependencies (from inside `backend/`)
-Since `requirements.txt` is included in this repo, just run:
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Configure environment variables
+### 3. Configure environment variables
 Copy `.env.example` → `.env`:
 ```bash
 cp .env.example .env
@@ -41,33 +28,47 @@ Then edit `.env` if needed (DB user/password must match your Docker config):
 DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/parkinglot
 ```
 
-> ⚠️ Do **not** commit `.env` to GitHub. Only `.env.example` is shared.
+> ⚠️ Do not commit `.env` to GitHub. Only `.env.example` is shared.
 
-### 6. Start PostgreSQL with Docker
+> **If you are running API + DB entirely in Docker (recommended):** use the Docker service name `db` instead of `localhost`:
+>
+> ```
+> DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
+> ```
+>
+> And run Alembic inside the container:
+> ```bash
+> docker compose up -d --build
+> docker compose exec api alembic upgrade head
+> ```
+
+### 4. Start PostgreSQL with Docker
 Make sure Docker Desktop is running, then (from inside `backend/`):
 ```bash
 docker compose up -d db
 ```
-This starts a Postgres 15 database on `localhost:5432`.
+This starts a Postgres 15 database on `localhost:5432` (mapped from the `db` container).
 
-### 7. Initialize database schema (Alembic)
-Run migrations:
+### 5. Initialize database schema (Alembic)
+**Recommended (Docker):**
+```bash
+docker compose up -d --build          # builds/starts api + db if not running
+docker compose exec api alembic upgrade head
+```
+
+**If you intentionally run Alembic on the host (hybrid mode):**
 ```bash
 alembic upgrade head
 ```
-Check tables inside Postgres:
-```bash
-docker exec -it parkinglot-db psql -U postgres -d parkinglot
-\dt    -- list tables
-\q     -- quit
-```
 
-### 8. Run the FastAPI server
-```bash
-uvicorn app.main:app --reload --port 8000
-```
+### 6. Run the FastAPI server
+- **All-Docker (recommended):** the API container starts Uvicorn automatically via `start.sh`.
+- **Host run (hybrid mode):**
+  ```bash
+  uvicorn app.main:app --reload --port 8000
+  ```
 
-Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to see Swagger UI.
+Open http://127.0.0.1:8000/docs to see Swagger UI.
 
 ---
 
@@ -81,36 +82,65 @@ Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to see Swagger UI.
 
 ---
 
-## 📑 Requirements File
+## 📑 Dependencies
 
-`requirements.txt` is already included in this repo.  
-Everyone should install dependencies with:
-```bash
-pip install -r requirements.txt
-```
-
-This ensures consistent library versions across all teammates.
+- Python libraries are installed **inside the Docker image** from `requirements.txt` (via the `Dockerfile`).  
+- To add a package permanently:
+  ```bash
+  # add it to requirements.txt, then rebuild
+  docker compose up -d --build
+  ```
+- For a quick test only (won’t persist after rebuild):
+  ```bash
+  docker compose exec api pip install <package>
+  ```
 
 ---
 
 ## 🔄 Daily Workflow
 
-1. Start DB:
+1. Start services:
    ```bash
-   docker compose up -d db
+   docker compose up -d
    ```
 2. Run migrations (only if models changed):
    ```bash
-   alembic revision --autogenerate -m "update schema"
-   alembic upgrade head
+   docker compose exec api alembic revision --autogenerate -m "update schema"
+   docker compose exec api alembic upgrade head
    ```
-3. Start backend:
+3. Tail API logs (hot reload is enabled):
    ```bash
-   uvicorn app.main:app --reload --port 8000
+   docker compose logs -f api
    ```
 4. Test endpoints at:
    - `/healthz` → check DB
    - `/docs` → Swagger UI
 5. Stop services:
-   - `CTRL+C` to stop FastAPI  
-   - `docker compose down` to stop Postgres (optional)
+   - `docker compose down`  
+   - Add `-v` to wipe DB data: `docker compose down -v` (⚠ irreversibly deletes the database volume)
+
+---
+
+## 🧪 Quick DB Checks
+
+Non-interactive:
+```bash
+docker compose exec db psql -U postgres -d parkinglot -c "\dt"
+```
+
+Interactive:
+```bash
+docker compose exec db psql -U postgres -d parkinglot
+\dt         -- list tables
+\d <table>  -- describe a table
+\q          -- quit
+```
+
+---
+
+## 🧰 Notes about Docker files
+
+- **Dockerfile** builds the API image, installs `requirements.txt`, and includes tools needed for Postgres/Alembic.
+- **start.sh** waits for the DB, runs `alembic upgrade head`, then starts Uvicorn with reload for development.
+- **docker-compose.yml** defines `db`, `api`, and (optionally) Adminer on port `8080`.
+- Keep `.env` out of git; commit `.env.example` with safe defaults.
