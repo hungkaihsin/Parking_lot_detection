@@ -221,9 +221,14 @@ repo-root/
 **.env examples**
 ```
 # backend/.env
+# For API
 DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
 MODEL_DIR=backend/models/det/veh_v0/weights
 CAR_SPEC_PATH=./data/processed/car_specs_v0_filtered.csv
+# For Postgres container
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=parkinglot
 ```
 
 **.gitignore hints**
