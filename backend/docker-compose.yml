@@ -5,20 +5,34 @@ services:
     image: postgres:15
     container_name: parkinglot-db
     restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: parkinglot
+    env_file: .env
     ports:
-      - "5432:5432"
+      - "5432:5432"               # change to 5433:5432 if 5432 is busy
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
 
   adminer:
     image: adminer
     restart: always
     ports:
       - "8080:8080"
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app                    # live reload while editing code
 
 volumes:
   db_data:
