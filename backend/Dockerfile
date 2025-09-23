@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     build-essential \
     libpq-dev \
-    postgresql-client \
+    postgresqlsdadasdasd-client \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
