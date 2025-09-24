@@ -2,22 +2,42 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from dotenv import load_dotenv
+from ultralytics import YOLO
+import torch
 
 from .db import get_db
 from . import models
 
 # Load .env (ensures DATABASE_URL is available)
 load_dotenv()
-
 app = FastAPI(title="Parking Lot Recommender API")
 
+# Load YOLO model at startup
+try:
+    model = YOLO("models/parking_lot.pt")  # path to your YOLO weights
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model_loaded = True
+except Exception as e:
+    model = None
+    device = "unavailable"
+    model_loaded = False
+
+
+
+# Endpoints
 @app.get("/healthz")
 def health(db: Session = Depends(get_db)):
+    db_status = "ok"
     try:
         db.execute(text("SELECT 1"))
-        return {"status": "ok", "db": "connected"}
     except Exception as e:
-        return {"status": "error", "db_error": str(e)}
+        db_status = f"error: {e}"
+    return {
+        "status": "ok" if db_status == "ok" and model_loaded else "degraded",
+        "db": db_status,
+        "model_loaded": model_loaded,
+        "device": device,
+    }
 
 @app.post("/detect/vehicle")
 def detect_vehicle_stub():
