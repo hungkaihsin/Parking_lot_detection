@@ -1,0 +1,182 @@
+[
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Bbw.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Bbw_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Cvl.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Cvl_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Gzs.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Gzs_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Mro.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Mro_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Ofi.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Ofi_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_RuR.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_RuR_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_SLr.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_SLr_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_UMh.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_UMh_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Wxn.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_Wxn_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_YSc.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_YSc_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_aWg.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_aWg_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_eeu.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_eeu_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_gQW.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_gQW_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_kMx.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_kMx_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_onJ.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_onJ_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_plr.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_plr_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_xSG.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_xSG_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_xsI.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_xsI_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_yAs.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_yAs_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  },
+  {
+    "input": "/app/data/car_archive/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_ylA.jpg",
+    "conf": 0.3,
+    "iou": 0.45,
+    "overlay": "/app/data/overlays/conf0.30_iou0.45/Acura_ILX_2013_28_16_110_15_4_70_55_179_39_FWD_5_4_4dr_ylA_conf0.30_iou0.45.jpg",
+    "brand": "Acura",
+    "model_guess": "ILX",
+    "spec": null
+  }
+]
