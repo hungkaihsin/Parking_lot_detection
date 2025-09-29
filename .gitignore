@@ -1,3 +1,26 @@
-.DS_Store
+# Python
+*.pyc
+*.pyo
+*.log
+
+# Env & local config
 .env
-__pycache__
+
+# Data & outputs
+data/**
+runs/**
+configs/_sweeps/**
+!data/README.md           # keep a tiny pointer file if you want
+!data/processed/.keep     # optional empty file to keep the folder
+data/overlays/**
+data/car_archive/**
+
+# Models
+models/*.pt
+models/*.onnx
+models/*.engine
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

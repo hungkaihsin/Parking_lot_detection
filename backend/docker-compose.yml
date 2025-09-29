@@ -3,11 +3,9 @@ version: "3.9"
 services:
   db:
     image: postgres:15
-    container_name: parkinglot-db
     restart: always
     env_file: .env
-    ports:
-      - "5432:5432"               # change to 5433:5432 if 5432 is busy
+    ports: ["5432:5432"]            # change to 5433:5432 if 5432 is busy
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,20 +17,46 @@ services:
   adminer:
     image: adminer
     restart: always
-    ports:
-      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports: ["8080:8080"]
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+    working_dir: /app
+    command: >
+      sh -lc "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "sh", "-lc", "python - <<'PY'\nimport requests; requests.get('http://localhost:8000/openapi.json', timeout=2)\nPY"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     volumes:
-      - ./:/app                    # live reload while editing code
+      - ./:/app
+
+  sweeper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      API_URL: http://api:8000
+    working_dir: /app
+    entrypoint: ["python", "scripts/sweep_conf_iou.py"]
+    volumes:
+      - ./:/app
 
 volumes:
   db_data:

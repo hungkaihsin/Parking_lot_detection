@@ -1,25 +1,28 @@
+# app/db.py
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./local.db")
 
-# Get DB URL from env (or fallback to default)
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg2://postgres:password@localhost:5432/parkinglot"
-)
-
-# SQLAlchemy setup
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+_engine = None
+_SessionLocal = None
 
-# Dependency for FastAPI routes
+def get_engine():
+    global _engine
+    if _engine is None:
+        _engine = create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
+    return _engine
+
+def get_sessionmaker():
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine(), future=True)
+    return _SessionLocal
+
 def get_db():
-    db = SessionLocal()
+    db = get_sessionmaker()()
     try:
         yield db
     finally:
