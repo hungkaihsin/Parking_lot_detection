@@ -1,0 +1,15 @@
+{"text": "I want an EV spot near the entrance", "expected": {"ev": true, "near": true}}
+{"text": "compact car between two empty", "expected": {"size": "compact", "buffered": true}}
+{"text": "disabled parking please", "expected": {"ada": true}}
+{"text": "midsize EV with CCS connector", "expected": {"ev": true, "size": "midsize", "connector": "ccs"}}
+{"text": "full size car", "expected": {"size": "full"}}
+{"text": "SUV spot close to entrance", "expected": {"size": "suv", "near": true}}
+{"text": "truck with fast charger", "expected": {"size": "truck", "connector": "dc_fast"}}
+{"text": "any spot near entrance", "expected": {"near": true}}
+{"text": "ev only", "expected": {"ev": true}}
+{"text": "handicap parking spot", "expected": {"ada": true}}
+{"text": "need a compact EV", "expected": {"size": "compact", "ev": true}}
+{"text": "prefer buffered midsize", "expected": {"size": "midsize", "buffered": true}}
+{"text": "ada with j1772 connector", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "full size ev between two empty", "expected": {"size": "full", "ev": true, "buffered": true}}
+{"text": "truck spot far away is fine", "expected": {"size": "truck"}}

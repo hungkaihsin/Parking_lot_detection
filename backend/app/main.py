@@ -8,6 +8,8 @@ import torch
 from .db import get_db
 from . import models
 
+from .chat import router as chat_router
+
 # Load .env (ensures DATABASE_URL is available)
 load_dotenv()
 app = FastAPI(title="Parking Lot Recommender API")
@@ -83,3 +85,5 @@ def recommend_stub():
 @app.post("/chat")
 def chat_stub(query: dict):
     return {"query": query, "response": "Closest EV midsize between two empty spots is A-27."}
+
+app.include_router(chat_router)
