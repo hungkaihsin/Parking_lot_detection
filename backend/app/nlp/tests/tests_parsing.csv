@@ -93,7 +93,7 @@ midsize ev near exit,midsize,TRUE,,,,
 full size spot with dc fast,full,,dc_fast,,,
 suv ev with j1772 buffered,suv,TRUE,j1772,,,TRUE
 handicap spot with j1772,,,j1772,,TRUE,
-truck spot far away,truck,,,,,
+truck spot far away,truck,,q,,,
 compact ev with ccs near the entrance,compact,TRUE,ccs,TRUE,,
 midsize buffered spot near the door,midsize,,,TRUE,,TRUE
 "full size spot, no ev",full,,,,,
