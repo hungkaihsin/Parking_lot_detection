@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from backend.app.nlp.nl_parse import parse_request
+from app.nlp.nl_parse import parse_request
 
 def test_parsing():
     """Reads test cases from JSONL and checks parser output."""
