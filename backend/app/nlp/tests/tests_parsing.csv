@@ -1,327 +1,327 @@
 text,expected/size,expected/ev,expected/connector,expected/near,expected/ada,expected/buffered
-I need a fast charger for an electric truck,truck,true,dc_fast,,,
-midsize spot near me,midsize,,,true,,
-"handicap spot, not an EV",,,,,true,
-full size buffered near entrance,full,,,true,,true
-compact ev spot with CCS,compact,true,ccs,,,
+I need a fast charger for an electric truck,truck,TRUE,dc_fast,,,
+midsize spot near me,midsize,,,TRUE,,
+"handicap spot, not an EV",,,,,TRUE,
+full size buffered near entrance,full,,,TRUE,,TRUE
+compact ev spot with CCS,compact,TRUE,ccs,,,
 any spot with a J1772 plug,,,j1772,,,
 SUV spot far away is okay,suv,,,,,
-buffered spot for an EV,,true,,,,true
-truck spot near the door,truck,,,true,,
+buffered spot for an EV,,TRUE,,,,TRUE
+truck spot near the door,truck,,,TRUE,,
 midsize car only,midsize,,,,,
-disabled parking with DC fast charging,,,dc_fast,,true,
-I require a full size buffered EV spot,full,true,,,,true
-small car buffered near front,compact,,,true,,true
-EV spot near the entrance with J1772,,true,j1772,true,,
-handicap ev with any connector,,true,,,true,
+disabled parking with DC fast charging,,,dc_fast,,TRUE,
+I require a full size buffered EV spot,full,TRUE,,,,TRUE
+small car buffered near front,compact,,,TRUE,,TRUE
+EV spot near the entrance with J1772,,TRUE,j1772,TRUE,,
+handicap ev with any connector,,TRUE,,,TRUE,
 truck with CCS,truck,,ccs,,,
 compact car near exit,compact,,,,,
 any midsize spot,midsize,,,,,
-SUV ev with J1772,suv,true,j1772,,,
-full size close to the entrance,full,,,true,,
-just a normal buffered spot,,,,,,true
-need an ada spot far away,,,,,true,
-truck ev with buffered space,truck,true,,,,true
-midsize with fast charger near the door,midsize,,dc_fast,true,,
-compact car between two empty spots,compact,,,,,true
-"EV spot with CCS, any size",,true,ccs,,,
+SUV ev with J1772,suv,TRUE,j1772,,,
+full size close to the entrance,full,,,TRUE,,
+just a normal buffered spot,,,,,,TRUE
+need an ada spot far away,,,,,TRUE,
+truck ev with buffered space,truck,TRUE,,,,TRUE
+midsize with fast charger near the door,midsize,,dc_fast,TRUE,,
+compact car between two empty spots,compact,,,,,TRUE
+"EV spot with CCS, any size",,TRUE,ccs,,,
 "full size car, not an ev",full,,,,,
 SUV spot with fast charger far away,suv,,dc_fast,,,
-handicap spot near the front door,,,,true,true,
-buffered compact car spot,compact,,,,,true
-truck ev with j1772,truck,true,j1772,,,
+handicap spot near the front door,,,,TRUE,TRUE,
+buffered compact car spot,compact,,,,,TRUE
+truck ev with j1772,truck,TRUE,j1772,,,
 midsize spot far from entrance,midsize,,,,,
-ada spot with ccs,,,ccs,,true,
-full size ev near me,full,true,,true,,
+ada spot with ccs,,,ccs,,TRUE,
+full size ev near me,full,TRUE,,TRUE,,
 compact spot only,compact,,,,,
 dc fast connector is a must,,,dc_fast,,,
-SUV spot between two empty spots,suv,,,,,true
-ev only near entrance,,true,,true,,
-midsize car ev with buffered space,midsize,true,,,,true
-truck spot near the entrance,truck,,,true,,
-handicap ev buffered,,true,,,true,true
-any full size spot near me,full,,,true,,
-ccs connector for my ev,,true,ccs,,,
-compact buffered spot far away,compact,,,,,true
-midsize ev near the door with fast charging,midsize,true,dc_fast,true,,
+SUV spot between two empty spots,suv,,,,,TRUE
+ev only near entrance,,TRUE,,TRUE,,
+midsize car ev with buffered space,midsize,TRUE,,,,TRUE
+truck spot near the entrance,truck,,,TRUE,,
+handicap ev buffered,,TRUE,,,TRUE,TRUE
+any full size spot near me,full,,,TRUE,,
+ccs connector for my ev,,TRUE,ccs,,,
+compact buffered spot far away,compact,,,,,TRUE
+midsize ev near the door with fast charging,midsize,TRUE,dc_fast,TRUE,,
 regular suv spot,suv,,,,,
 truck with j1772,truck,,j1772,,,
-ada spot with buffered space,,,,,true,true
+ada spot with buffered space,,,,,TRUE,TRUE
 full size car spot far away,full,,,,,
-ev charging station only,,true,,,,
-near entrance with no other requirements,,,,true,,
-midsize ev with ccs and buffered,midsize,true,ccs,,,true
-truck spot between two cars,truck,,,,,true
-compact car near the door,compact,,,true,,
-ada spot far away is acceptable,,,,,true,
-full size ev with fast charger,full,true,dc_fast,,,
-suv spot with j1772 near the front,suv,,j1772,true,,
-small car ev with buffered space,compact,true,,,,true
+ev charging station only,,TRUE,,,,
+near entrance with no other requirements,,,,TRUE,,
+midsize ev with ccs and buffered,midsize,TRUE,ccs,,,TRUE
+truck spot between two cars,truck,,,,,TRUE
+compact car near the door,compact,,,TRUE,,
+ada spot far away is acceptable,,,,,TRUE,
+full size ev with fast charger,full,TRUE,dc_fast,,,
+suv spot with j1772 near the front,suv,,j1772,TRUE,,
+small car ev with buffered space,compact,TRUE,,,,TRUE
 truck spot only,truck,,,,,
-buffered spot for an ada ev,,true,,,true,true
-"midsize car near me, no ev needed",midsize,,,true,,
-ccs ev only,,true,ccs,,,
-full size buffered,full,,,,,true
+buffered spot for an ada ev,,TRUE,,,TRUE,TRUE
+"midsize car near me, no ev needed",midsize,,,TRUE,,
+ccs ev only,,TRUE,ccs,,,
+full size buffered,full,,,,,TRUE
 compact car far away,compact,,,,,
-suv ev with fast charging near me,suv,true,dc_fast,true,,
-any ada spot with ccs connector,,,ccs,,true,
-truck spot between two empty ev spots,truck,,,,,true
-ev only with j1772,,true,j1772,,,
+suv ev with fast charging near me,suv,TRUE,dc_fast,TRUE,,
+any ada spot with ccs connector,,,ccs,,TRUE,
+truck spot between two empty ev spots,truck,,,,,TRUE
+ev only with j1772,,TRUE,j1772,,,
 "midsize car, far from the entrance",midsize,,,,,
-compact ev far away is fine,compact,true,,,,
-full size ev with buffered space near entrance,full,true,,true,,true
+compact ev far away is fine,compact,TRUE,,,,
+full size ev with buffered space near entrance,full,TRUE,,TRUE,,TRUE
 "suv spot, no ev needed",suv,,,,,
-handicap parking with fast charging,,,dc_fast,,true,
-any buffered truck spot,truck,,,,,true
-midsize with ccs and near the door,midsize,,ccs,true,,
-compact car with any ev connector,compact,true,,,,
+handicap parking with fast charging,,,dc_fast,,TRUE,
+any buffered truck spot,truck,,,,,TRUE
+midsize with ccs and near the door,midsize,,ccs,TRUE,,
+compact car with any ev connector,compact,TRUE,,,,
 full size car only,full,,,,,
-ev spot near the entrance,,true,,true,,
-ada spot buffered,,,,,true,true
-truck ev with dc fast charger near me,truck,true,dc_fast,true,,
+ev spot near the entrance,,TRUE,,TRUE,,
+ada spot buffered,,,,,TRUE,TRUE
+truck ev with dc fast charger near me,truck,TRUE,dc_fast,TRUE,,
 compact car with j1772 connector,compact,,j1772,,,
-midsize ev near me with ccs,midsize,true,ccs,true,,
+midsize ev near me with ccs,midsize,TRUE,ccs,TRUE,,
 any spot with a fast charger,,,dc_fast,,,
-full size buffered far away,full,,,,,true
-suv spot near the front,suv,,,true,,
-"ev only, far away",,true,,,,
-truck with j1772 near the door,truck,,j1772,true,,
-ada ev with ccs and buffered,,true,ccs,,true,true
-"compact car, no ev, buffered",compact,,,,,true
-midsize ev near exit,midsize,true,,,,
-"any spot, closest is best",,,,true,,
+full size buffered far away,full,,,,,TRUE
+suv spot near the front,suv,,,TRUE,,
+"ev only, far away",,TRUE,,,,
+truck with j1772 near the door,truck,,j1772,TRUE,,
+ada ev with ccs and buffered,,TRUE,ccs,,TRUE,TRUE
+"compact car, no ev, buffered",compact,,,,,TRUE
+midsize ev near exit,midsize,TRUE,,,,
+"any spot, closest is best",,,,TRUE,,
 full size spot with dc fast,full,,dc_fast,,,
-suv ev with j1772 buffered,suv,true,j1772,,,true
-handicap spot with j1772,,,j1772,,true,
+suv ev with j1772 buffered,suv,TRUE,j1772,,,TRUE
+handicap spot with j1772,,,j1772,,TRUE,
 truck spot far away,truck,,,,,
-compact ev with ccs near the entrance,compact,true,ccs,true,,
-midsize buffered spot near the door,midsize,,,true,,true
+compact ev with ccs near the entrance,compact,TRUE,ccs,TRUE,,
+midsize buffered spot near the door,midsize,,,TRUE,,TRUE
 "full size spot, no ev",full,,,,,
-"ev charging only, buffered",,true,,,,true
-suv with fast charger and buffered,suv,,dc_fast,,,true
-truck ev only near front,truck,true,,true,,
-ada spot with ev near the entrance,,true,,true,true,
+"ev charging only, buffered",,TRUE,,,,TRUE
+suv with fast charger and buffered,suv,,dc_fast,,,TRUE
+truck ev only near front,truck,TRUE,,TRUE,,
+ada spot with ev near the entrance,,TRUE,,TRUE,TRUE,
 compact car spot,compact,,,,,
-midsize with j1772 and buffered,midsize,,j1772,,,true
-"full size ev, far from door",full,true,,,,
-any spot with ccs and buffered,,,ccs,,,true
+midsize with j1772 and buffered,midsize,,j1772,,,TRUE
+"full size ev, far from door",full,TRUE,,,,
+any spot with ccs and buffered,,,ccs,,,TRUE
 suv spot far away,suv,,,,,
 truck spot far from the entrance,truck,,,,,
-"handicap spot, no ev, near me",,,,true,true,
-compact ev near me,compact,true,,true,,
-midsize buffered ev spot with fast charger,midsize,true,dc_fast,,,true
-"full size spot, buffered and near door",full,,,true,,true
-ev spot only with any connector,,true,,,,
-suv with j1772 and buffered,suv,,j1772,,,true
-truck ev with ccs,truck,true,ccs,,,
-ada spot only,,,,,true,
+"handicap spot, no ev, near me",,,,TRUE,TRUE,
+compact ev near me,compact,TRUE,,TRUE,,
+midsize buffered ev spot with fast charger,midsize,TRUE,dc_fast,,,TRUE
+"full size spot, buffered and near door",full,,,TRUE,,TRUE
+ev spot only with any connector,,TRUE,,,,
+suv with j1772 and buffered,suv,,j1772,,,TRUE
+truck ev with ccs,truck,TRUE,ccs,,,
+ada spot only,,,,,TRUE,
 "compact car, any spot, no ev",compact,,,,,
-midsize ev near entrance,midsize,true,,true,,
-full size car buffered,full,,,,,true
-j1772 connector near the door,,,j1772,true,,
+midsize ev near entrance,midsize,TRUE,,TRUE,,
+full size car buffered,full,,,,,TRUE
+j1772 connector near the door,,,j1772,TRUE,,
 suv spot with dc fast charging,suv,,dc_fast,,,
-truck buffered near the entrance,truck,,,true,,true
-ev spot between two cars,,true,,,,true
-handicap spot with fast charger near front,,,dc_fast,true,true,
-compact ev spot far away,compact,true,,,,
+truck buffered near the entrance,truck,,,TRUE,,TRUE
+ev spot between two cars,,TRUE,,,,TRUE
+handicap spot with fast charger near front,,,dc_fast,TRUE,TRUE,
+compact ev spot far away,compact,TRUE,,,,
 "midsize car, no ev",midsize,,,,,
-full size ev with ccs buffered,full,true,ccs,,,true
+full size ev with ccs buffered,full,TRUE,ccs,,,TRUE
 suv spot near exit,suv,,,,,
-truck spot with any ev charging,truck,true,,,,
-ada spot with j1772 near me,,,j1772,true,true,
-compact buffered ev spot,compact,true,,,,true
-midsize with dc fast and buffered,midsize,,dc_fast,,,true
-full size near the entrance,full,,,true,,
-any ev spot with ccs near the door,,true,ccs,true,,
-suv ev far away,suv,true,,,,
-buffered truck spot,truck,,,,,true
-handicap spot far away,,,,,true,
+truck spot with any ev charging,truck,TRUE,,,,
+ada spot with j1772 near me,,,j1772,TRUE,TRUE,
+compact buffered ev spot,compact,TRUE,,,,TRUE
+midsize with dc fast and buffered,midsize,,dc_fast,,,TRUE
+full size near the entrance,full,,,TRUE,,
+any ev spot with ccs near the door,,TRUE,ccs,TRUE,,
+suv ev far away,suv,TRUE,,,,
+buffered truck spot,truck,,,,,TRUE
+handicap spot far away,,,,,TRUE,
 compact car with ccs connector,compact,,ccs,,,
-"midsize ev spot, no buffered needed",midsize,true,,,,
+"midsize ev spot, no buffered needed",midsize,TRUE,,,,
 full size spot with j1772 connector,full,,j1772,,,
-"close to entrance, any spot",,,,true,,
-suv ev buffered near me,suv,true,,true,,true
-truck with fast charger buffered,truck,,dc_fast,,,true
-ada ev with fast charger,,true,dc_fast,,true,
-"compact car, buffered and near me",compact,,,true,,true
+"close to entrance, any spot",,,,TRUE,,
+suv ev buffered near me,suv,TRUE,,TRUE,,TRUE
+truck with fast charger buffered,truck,,dc_fast,,,TRUE
+ada ev with fast charger,,TRUE,dc_fast,,TRUE,
+"compact car, buffered and near me",compact,,,TRUE,,TRUE
 midsize spot far away is fine,midsize,,,,,
-full size ev spot with j1772,full,true,j1772,,,
-any buffered spot near the door,,,,true,,true
-suv spot with ccs near the front,suv,,ccs,true,,
-truck ev with buffered space and j1772,truck,true,j1772,,,true
-handicap ev buffered near entrance,,true,,true,true,true
-compact car near entrance,compact,,,true,,
-midsize ev with dc fast,midsize,true,dc_fast,,,
+full size ev spot with j1772,full,TRUE,j1772,,,
+any buffered spot near the door,,,,TRUE,,TRUE
+suv spot with ccs near the front,suv,,ccs,TRUE,,
+truck ev with buffered space and j1772,truck,TRUE,j1772,,,TRUE
+handicap ev buffered near entrance,,TRUE,,TRUE,TRUE,TRUE
+compact car near entrance,compact,,,TRUE,,
+midsize ev with dc fast,midsize,TRUE,dc_fast,,,
 "full size car, no ev, far away",full,,,,,
-j1772 only near me,,,j1772,true,,
-suv buffered spot,suv,,,,,true
-"truck spot, no ev, buffered",truck,,,,,true
-ada ev with j1772 buffered,,true,j1772,,true,true
+j1772 only near me,,,j1772,TRUE,,
+suv buffered spot,suv,,,,,TRUE
+"truck spot, no ev, buffered",truck,,,,,TRUE
+ada ev with j1772 buffered,,TRUE,j1772,,TRUE,TRUE
 compact car with fast charger,compact,,dc_fast,,,
-"midsize spot, near the door",midsize,,,true,,
-full size ev with ccs connector near entrance,full,true,ccs,true,,
-any spot between two cars,,,,,,true
-suv ev with buffered space,suv,true,,,,true
+"midsize spot, near the door",midsize,,,TRUE,,
+full size ev with ccs connector near entrance,full,TRUE,ccs,TRUE,,
+any spot between two cars,,,,,,TRUE
+suv ev with buffered space,suv,TRUE,,,,TRUE
 truck with ccs far away,truck,,ccs,,,
-handicap parking near the front,,,,true,true,
-compact car ev far from door,compact,true,,,,
-midsize buffered spot far away,midsize,,,,,true
+handicap parking near the front,,,,TRUE,TRUE,
+compact car ev far from door,compact,TRUE,,,,
+midsize buffered spot far away,midsize,,,,,TRUE
 full size car with any connector,full,,,,,
-ev spot with dc fast connector,,true,dc_fast,,,
-"suv spot near the entrance, no ev",suv,,,true,,
-truck ev buffered near me,truck,true,,true,,true
-ada spot with ccs near the door,,,ccs,true,true,
+ev spot with dc fast connector,,TRUE,dc_fast,,,
+"suv spot near the entrance, no ev",suv,,,TRUE,,
+truck ev buffered near me,truck,TRUE,,TRUE,,TRUE
+ada spot with ccs near the door,,,ccs,TRUE,TRUE,
 "compact car only, far away",compact,,,,,
-midsize with j1772 near me,midsize,,j1772,true,,
-"full size spot, no ev, buffered",full,,,,,true
-any ev spot with fast charger,,true,dc_fast,,,
+midsize with j1772 near me,midsize,,j1772,TRUE,,
+"full size spot, no ev, buffered",full,,,,,TRUE
+any ev spot with fast charger,,TRUE,dc_fast,,,
 suv spot with j1772,suv,,j1772,,,
-truck spot near me,truck,,,true,,
-handicap ev with buffered spot,,true,,,true,true
-"compact car buffered, no ev",compact,,,,,true
-midsize ev near exit is fine,midsize,true,,,,
+truck spot near me,truck,,,TRUE,,
+handicap ev with buffered spot,,TRUE,,,TRUE,TRUE
+"compact car buffered, no ev",compact,,,,,TRUE
+midsize ev near exit is fine,midsize,TRUE,,,,
 full size car far away,full,,,,,
-ccs connector near entrance,,,ccs,true,,
-suv ev near me with ccs,suv,true,ccs,true,,
-truck with buffered ev spot,truck,true,,,,true
-ada spot with dc fast near me,,,dc_fast,true,true,
-"compact car, no ev, near entrance",compact,,,true,,
+ccs connector near entrance,,,ccs,TRUE,,
+suv ev near me with ccs,suv,TRUE,ccs,TRUE,,
+truck with buffered ev spot,truck,TRUE,,,,TRUE
+ada spot with dc fast near me,,,dc_fast,TRUE,TRUE,
+"compact car, no ev, near entrance",compact,,,TRUE,,
 midsize spot with fast charger far away,midsize,,dc_fast,,,
-full size ev with buffered space,full,true,,,,true
+full size ev with buffered space,full,TRUE,,,,TRUE
 any j1772 spot,,,j1772,,,
-"suv spot, no ev, buffered, far away",suv,,,,,true
-truck ev near me with any connector,truck,true,,true,,
-"handicap spot, buffered, no ev",,,,,true,true
-compact car with ccs and buffered,compact,,ccs,,,true
-midsize ev near the front with j1772,midsize,true,j1772,true,,
+"suv spot, no ev, buffered, far away",suv,,,,,TRUE
+truck ev near me with any connector,truck,TRUE,,TRUE,,
+"handicap spot, buffered, no ev",,,,,TRUE,TRUE
+compact car with ccs and buffered,compact,,ccs,,,TRUE
+midsize ev near the front with j1772,midsize,TRUE,j1772,TRUE,,
 full size car far from door is fine,full,,,,,
-ev spot far away is fine,,true,,,,
-suv spot near the door with fast charger,suv,,dc_fast,true,,
-"truck spot, no ev, near entrance",truck,,,true,,
-ada spot with ev and ccs,,true,ccs,,true,
+ev spot far away is fine,,TRUE,,,,
+suv spot near the door with fast charger,suv,,dc_fast,TRUE,,
+"truck spot, no ev, near entrance",truck,,,TRUE,,
+ada spot with ev and ccs,,TRUE,ccs,,TRUE,
 compact car spot far from me,compact,,,,,
-midsize buffered spot with j1772,midsize,,j1772,,,true
-full size ev with fast charger near front,full,true,dc_fast,true,,
-any spot with dc fast charging near me,,,dc_fast,true,,
-suv ev spot only,suv,true,,,,
-"truck spot, no ev, buffered near door",truck,,,true,,true
-handicap spot with j1772 buffered,,,j1772,,true,true
-compact ev buffered with ccs,compact,true,ccs,,,true
+midsize buffered spot with j1772,midsize,,j1772,,,TRUE
+full size ev with fast charger near front,full,TRUE,dc_fast,TRUE,,
+any spot with dc fast charging near me,,,dc_fast,TRUE,,
+suv ev spot only,suv,TRUE,,,,
+"truck spot, no ev, buffered near door",truck,,,TRUE,,TRUE
+handicap spot with j1772 buffered,,,j1772,,TRUE,TRUE
+compact ev buffered with ccs,compact,TRUE,ccs,,,TRUE
 "midsize car, far away, no ev",midsize,,,,,
-"full size spot near me, no ev",full,,,true,,
-"ev spot only, far away, buffered",,true,,,,true
-suv with ccs and buffered,suv,,ccs,,,true
-truck ev with j1772 near me,truck,true,j1772,true,,
-ada spot with fast charger and buffered,,,dc_fast,,true,true
+"full size spot near me, no ev",full,,,TRUE,,
+"ev spot only, far away, buffered",,TRUE,,,,TRUE
+suv with ccs and buffered,suv,,ccs,,,TRUE
+truck ev with j1772 near me,truck,TRUE,j1772,TRUE,,
+ada spot with fast charger and buffered,,,dc_fast,,TRUE,TRUE
 "compact car spot, any connector",compact,,,,,
-midsize buffered ev spot with ccs,midsize,true,ccs,,,true
-full size ev far away is fine,full,true,,,,
-any spot close to the door,,,,true,,
-suv ev with j1772 near the entrance,suv,true,j1772,true,,
-truck spot with dc fast charger and buffered,truck,,dc_fast,,,true
-handicap ev with any connector near me,,true,,true,true,
+midsize buffered ev spot with ccs,midsize,TRUE,ccs,,,TRUE
+full size ev far away is fine,full,TRUE,,,,
+any spot close to the door,,,,TRUE,,
+suv ev with j1772 near the entrance,suv,TRUE,j1772,TRUE,,
+truck spot with dc fast charger and buffered,truck,,dc_fast,,,TRUE
+handicap ev with any connector near me,,TRUE,,TRUE,TRUE,
 compact car near exit is fine,compact,,,,,
 midsize spot far from the door,midsize,,,,,
-"full size car, no ev, near me",full,,,true,,
-"j1772 connector only, buffered",,,j1772,,,true
-suv ev with fast charger buffered,suv,true,dc_fast,,,true
-truck spot with ccs near the entrance,truck,,ccs,true,,
-ada spot with buffered space near me,,,,true,true,true
-compact ev spot with fast charger,compact,true,dc_fast,,,
+"full size car, no ev, near me",full,,,TRUE,,
+"j1772 connector only, buffered",,,j1772,,,TRUE
+suv ev with fast charger buffered,suv,TRUE,dc_fast,,,TRUE
+truck spot with ccs near the entrance,truck,,ccs,TRUE,,
+ada spot with buffered space near me,,,,TRUE,TRUE,TRUE
+compact ev spot with fast charger,compact,TRUE,dc_fast,,,
 midsize car with ccs,midsize,,ccs,,,
-full size buffered ev spot near door,full,true,,true,,true
-"ev spot only, buffered and near me",,true,,true,,true
+full size buffered ev spot near door,full,TRUE,,TRUE,,TRUE
+"ev spot only, buffered and near me",,TRUE,,TRUE,,TRUE
 "suv spot, far away, no ev",suv,,,,,
-"truck spot, no ev, buffered, far away",truck,,,,,true
-"handicap spot with ev, no other requirements",,true,,,true,
-"compact car, no ev, buffered near door",compact,,,true,,true
-midsize spot with j1772 and near me,midsize,,j1772,true,,
+"truck spot, no ev, buffered, far away",truck,,,,,TRUE
+"handicap spot with ev, no other requirements",,TRUE,,,TRUE,
+"compact car, no ev, buffered near door",compact,,,TRUE,,TRUE
+midsize spot with j1772 and near me,midsize,,j1772,TRUE,,
 full size car with dc fast connector,full,,dc_fast,,,
-any spot with ccs and near the door,,,ccs,true,,
-suv ev far from the door,suv,true,,,,
-truck buffered ev spot with ccs,truck,true,ccs,,,true
-ada spot with ev near exit,,true,,,true,
-compact car with j1772 near me,compact,,j1772,true,,
-midsize ev buffered far away,midsize,true,,,,true
-"full size car, no ev, far away, buffered",full,,,,,true
-ev only with fast charger and buffered,,true,dc_fast,,,true
-suv spot with j1772 buffered near entrance,suv,,j1772,true,,true
-truck spot with any connector near me,truck,,,true,,
-"handicap spot, no ev, far away",,,,,true,
-compact car ev with j1772,compact,true,j1772,,,
-"midsize spot, far away, no ev, buffered",midsize,,,,,true
-"full size ev near me, buffered, with ccs",full,true,ccs,true,,true
+any spot with ccs and near the door,,,ccs,TRUE,,
+suv ev far from the door,suv,TRUE,,,,
+truck buffered ev spot with ccs,truck,TRUE,ccs,,,TRUE
+ada spot with ev near exit,,TRUE,,,TRUE,
+compact car with j1772 near me,compact,,j1772,TRUE,,
+midsize ev buffered far away,midsize,TRUE,,,,TRUE
+"full size car, no ev, far away, buffered",full,,,,,TRUE
+ev only with fast charger and buffered,,TRUE,dc_fast,,,TRUE
+suv spot with j1772 buffered near entrance,suv,,j1772,TRUE,,TRUE
+truck spot with any connector near me,truck,,,TRUE,,
+"handicap spot, no ev, far away",,,,,TRUE,
+compact car ev with j1772,compact,TRUE,j1772,,,
+"midsize spot, far away, no ev, buffered",midsize,,,,,TRUE
+"full size ev near me, buffered, with ccs",full,TRUE,ccs,TRUE,,TRUE
 any spot with ccs,,,ccs,,,
-"suv spot near me, buffered",suv,,,true,,true
-truck with j1772 buffered,truck,,j1772,,,true
-"ada spot with ev, fast charger, near me",,true,dc_fast,true,true,
+"suv spot near me, buffered",suv,,,TRUE,,TRUE
+truck with j1772 buffered,truck,,j1772,,,TRUE
+"ada spot with ev, fast charger, near me",,TRUE,dc_fast,TRUE,TRUE,
 "compact car, no ev, any spot",compact,,,,,
-midsize spot near the entrance is best,midsize,,,true,,
-"full size ev far from door, no buffered",full,true,,,,
+midsize spot near the entrance is best,midsize,,,TRUE,,
+"full size ev far from door, no buffered",full,TRUE,,,,
 "j1772 connector only, far away",,,j1772,,,
-suv ev buffered far away,suv,true,,,,true
-truck spot with fast charger near entrance,truck,,dc_fast,true,,
-handicap ev with ccs connector,,true,ccs,,true,
-compact car with any connector near me,compact,,,true,,
-midsize buffered spot with dc fast,midsize,,dc_fast,,,true
+suv ev buffered far away,suv,TRUE,,,,TRUE
+truck spot with fast charger near entrance,truck,,dc_fast,TRUE,,
+handicap ev with ccs connector,,TRUE,ccs,,TRUE,
+compact car with any connector near me,compact,,,TRUE,,
+midsize buffered spot with dc fast,midsize,,dc_fast,,,TRUE
 full size car near exit,full,,,,,
-ev spot only with j1772 and near me,,true,j1772,true,,
+ev spot only with j1772 and near me,,TRUE,j1772,TRUE,,
 "suv spot, no ev, with ccs",suv,,ccs,,,
-truck ev buffered near exit,truck,true,,,,true
-"ada spot with fast charger, far away",,,dc_fast,,true,
-"compact car, no ev, far from door, buffered",compact,,,,,true
-"midsize spot with any ev charging, far away",midsize,true,,,,
-full size ev with j1772 buffered near me,full,true,j1772,true,,true
-"any buffered spot, no ev",,,,,,true
+truck ev buffered near exit,truck,TRUE,,,,TRUE
+"ada spot with fast charger, far away",,,dc_fast,,TRUE,
+"compact car, no ev, far from door, buffered",compact,,,,,TRUE
+"midsize spot with any ev charging, far away",midsize,TRUE,,,,
+full size ev with j1772 buffered near me,full,TRUE,j1772,TRUE,,TRUE
+"any buffered spot, no ev",,,,,,TRUE
 "suv spot far away is fine, no ev",suv,,,,,
-"truck with ccs, buffered, near me",truck,,ccs,true,,true
-handicap parking with ev and buffered space,,true,,,true,true
-"compact car near door, no ev",compact,,,true,,
-midsize ev with ccs buffered near entrance,midsize,true,ccs,true,,true
+"truck with ccs, buffered, near me",truck,,ccs,TRUE,,TRUE
+handicap parking with ev and buffered space,,TRUE,,,TRUE,TRUE
+"compact car near door, no ev",compact,,,TRUE,,
+midsize ev with ccs buffered near entrance,midsize,TRUE,ccs,TRUE,,TRUE
 "full size car spot, far away, no ev",full,,,,,
-ev spot only near me with dc fast,,true,dc_fast,true,,
-"suv spot, buffered, no ev, near me",suv,,,true,,true
-truck ev with fast charger buffered near me,truck,true,dc_fast,true,,true
-"ada spot with j1772, far away",,,j1772,,true,
-compact car ev with buffered space near me,compact,true,,true,,true
-"midsize spot with any connector, buffered",midsize,,,,,true
-"full size ev spot with any connector, near me",full,true,,true,,
+ev spot only near me with dc fast,,TRUE,dc_fast,TRUE,,
+"suv spot, buffered, no ev, near me",suv,,,TRUE,,TRUE
+truck ev with fast charger buffered near me,truck,TRUE,dc_fast,TRUE,,TRUE
+"ada spot with j1772, far away",,,j1772,,TRUE,
+compact car ev with buffered space near me,compact,TRUE,,TRUE,,TRUE
+"midsize spot with any connector, buffered",midsize,,,,,TRUE
+"full size ev spot with any connector, near me",full,TRUE,,TRUE,,
 "any spot with dc fast connector, far away",,,dc_fast,,,
-"suv spot with ccs, buffered, far away",suv,,ccs,,,true
-truck buffered ev spot with fast charger,truck,true,dc_fast,,,true
-"handicap spot, no ev, buffered, far away",,,,,true,true
-"compact car, no ev, near me, buffered",compact,,,true,,true
-"midsize ev with j1772, far away",midsize,true,j1772,,,
-"full size car spot, no ev, near door",full,,,true,,
-"ev only with ccs and buffered, far away",,true,ccs,,,true
-suv spot with any connector near me,suv,,,true,,
-"truck ev with buffered space, far away",truck,true,,,,true
-"ada spot with ev and fast charger, far away",,true,dc_fast,,true,
+"suv spot with ccs, buffered, far away",suv,,ccs,,,TRUE
+truck buffered ev spot with fast charger,truck,TRUE,dc_fast,,,TRUE
+"handicap spot, no ev, buffered, far away",,,,,TRUE,TRUE
+"compact car, no ev, near me, buffered",compact,,,TRUE,,TRUE
+"midsize ev with j1772, far away",midsize,TRUE,j1772,,,
+"full size car spot, no ev, near door",full,,,TRUE,,
+"ev only with ccs and buffered, far away",,TRUE,ccs,,,TRUE
+suv spot with any connector near me,suv,,,TRUE,,
+"truck ev with buffered space, far away",truck,TRUE,,,,TRUE
+"ada spot with ev and fast charger, far away",,TRUE,dc_fast,,TRUE,
 "compact car spot, no ev, far away, no buffered",compact,,,,,
-midsize buffered ev spot with j1772 near me,midsize,true,j1772,true,,true
-"full size car with any ev charging, far away",full,true,,,,
+midsize buffered ev spot with j1772 near me,midsize,TRUE,j1772,TRUE,,TRUE
+"full size car with any ev charging, far away",full,TRUE,,,,
 any spot near exit,,,,,,
-suv ev with ccs buffered near me,suv,true,ccs,true,,true
-"truck spot with j1772, buffered, near door",truck,,j1772,true,,true
-handicap ev with buffered spot near exit,,true,,,true,true
-compact car with fast charger near me,compact,,dc_fast,true,,
+suv ev with ccs buffered near me,suv,TRUE,ccs,TRUE,,TRUE
+"truck spot with j1772, buffered, near door",truck,,j1772,TRUE,,TRUE
+handicap ev with buffered spot near exit,,TRUE,,,TRUE,TRUE
+compact car with fast charger near me,compact,,dc_fast,TRUE,,
 "midsize spot far away, no ev, no buffered",midsize,,,,,
-"full size ev with any connector, buffered",full,true,,,,true
-"ev spot with ccs, far away, no buffered",,true,ccs,,,
+"full size ev with any connector, buffered",full,TRUE,,,,TRUE
+"ev spot with ccs, far away, no buffered",,TRUE,ccs,,,
 "suv spot with dc fast, far away, no ev",suv,,dc_fast,,,
-truck ev near me with ccs and buffered,truck,true,ccs,true,,true
-"ada spot with j1772, buffered, far away",,,j1772,,true,true
-"compact car, no ev, near me, no buffered",compact,,,true,,
-midsize buffered spot with j1772 near exit,midsize,,j1772,,,true
-"full size car with any connector, near me",full,,,true,,
-"any spot with fast charger, no ev, near me",,,dc_fast,true,,
-"suv ev with j1772, buffered, far away",suv,true,j1772,,,true
-truck spot with fast charger and buffered near me,truck,,dc_fast,true,,true
-"handicap ev with ccs, buffered, near me",,true,ccs,true,true,true
-"compact car ev with ccs, far away",compact,true,ccs,,,
+truck ev near me with ccs and buffered,truck,TRUE,ccs,TRUE,,TRUE
+"ada spot with j1772, buffered, far away",,,j1772,,TRUE,TRUE
+"compact car, no ev, near me, no buffered",compact,,,TRUE,,
+midsize buffered spot with j1772 near exit,midsize,,j1772,,,TRUE
+"full size car with any connector, near me",full,,,TRUE,,
+"any spot with fast charger, no ev, near me",,,dc_fast,TRUE,,
+"suv ev with j1772, buffered, far away",suv,TRUE,j1772,,,TRUE
+truck spot with fast charger and buffered near me,truck,,dc_fast,TRUE,,TRUE
+"handicap ev with ccs, buffered, near me",,TRUE,ccs,TRUE,TRUE,TRUE
+"compact car ev with ccs, far away",compact,TRUE,ccs,,,
 "midsize spot with any connector, far away",midsize,,,,,
-"full size ev near me, no buffered, no connector",full,true,,true,,
-"ev only with j1772, buffered, near entrance",,true,j1772,true,,true
-"suv spot with any connector, buffered, far away",suv,,,,,true
-"truck ev with j1772, buffered, far away",truck,true,j1772,,,true
-"ada spot with fast charger, buffered, near me",,,dc_fast,true,true,true
+"full size ev near me, no buffered, no connector",full,TRUE,,TRUE,,
+"ev only with j1772, buffered, near entrance",,TRUE,j1772,TRUE,,TRUE
+"suv spot with any connector, buffered, far away",suv,,,,,TRUE
+"truck ev with j1772, buffered, far away",truck,TRUE,j1772,,,TRUE
+"ada spot with fast charger, buffered, near me",,,dc_fast,TRUE,TRUE,TRUE
