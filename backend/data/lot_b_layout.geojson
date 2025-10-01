@@ -1,0 +1,48 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "B-01",
+        "is_ada": false,
+        "is_ev": true,
+        "connectors": "NACS"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [110, 50], [130, 50], [130, 80], [110, 80], [110, 50]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "B-02",
+        "is_ada": false,
+        "is_ev": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [135, 50], [155, 50], [155, 80], [135, 80], [135, 50]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENTRANCE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [150, 120]
+      }
+    }
+  ]
+}

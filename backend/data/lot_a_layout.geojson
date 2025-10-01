@@ -1,0 +1,64 @@
+
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "A-01",
+        "is_ada": true,
+        "is_ev": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [10, 50], [30, 50], [30, 80], [10, 80], [10, 50]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "A-02",
+        "is_ada": false,
+        "is_ev": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [35, 50], [55, 50], [55, 80], [35, 80], [35, 50]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "A-03",
+        "is_ada": false,
+        "is_ev": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [60, 50], [80, 50], [80, 80], [60, 80], [60, 50]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENTRANCE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [150, 120]
+      }
+    }
+  ]
+}
