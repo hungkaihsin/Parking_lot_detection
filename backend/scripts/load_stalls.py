@@ -64,11 +64,14 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
                 print(f"Skipping feature with no ID: {props}")
                 continue
 
+            # Create a composite ID to ensure uniqueness across lots
+            composite_id = f"{lot_id}-{stall_id}"
+
             geom_map[stall_id] = geom  # Save the geom object
 
             # Create Stall
             new_stall = Stall(
-                id=stall_id,
+                id=composite_id,
                 lot_id=lot_id,  # Use the provided lot_id
                 geom_wkt=geom.wkt,
                 center_x=geom.centroid.x,
@@ -77,7 +80,7 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
 
             # Create StallFeature
             new_feature = StallFeature(
-                id=stall_id,
+                id=composite_id,
                 is_ada=props.get('is_ada', False),
                 is_ev=props.get('is_ev', False),
                 connectors=props.get('connectors'),
@@ -88,7 +91,7 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
             # Link them
             new_stall.features = new_feature
             stalls_to_create.append(new_stall)
-            print(f"Prepared stall {stall_id} for creation.")
+            print(f"Prepared stall {composite_id} for creation.")
 
     if not stalls_to_create:
         print("No valid stall polygons found to load.")
@@ -99,7 +102,7 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
     # 5. Calculate neighbors (for all stalls in the DB for simplicity)
     # A more advanced version would only calculate for the current lot.
     print("Calculating neighbors...")
-    all_stalls_in_db = db.query(Stall).all()
+    all_stalls_in_db = db.query(Stall).filter(Stall.lot_id == lot_id).all()
     for stall_a in all_stalls_in_db:
         geom_a = wkt.loads(stall_a.geom_wkt)
         for stall_b in all_stalls_in_db:
