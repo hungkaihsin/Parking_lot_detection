@@ -36,7 +36,7 @@ services:
       PYTHONPATH: /app
     command: >
       sh -lc "uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    ports: ["8000:8000"]
+    ports: ["8001:8000"]
     healthcheck:
       test: ["CMD", "sh", "-lc", "python - <<'PY'\nimport requests; requests.get('http://localhost:8000/openapi.json', timeout=2)\nPY"]
       interval: 5s
