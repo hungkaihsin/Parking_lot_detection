@@ -24,8 +24,8 @@ PY
 alembic upgrade head
 
 echo "Loading parking lot data..."
-python scripts/load_stalls.py --file data/lot_a_layout.geojson --lot-id LotA
-python scripts/load_stalls.py --file data/lot_b_layout.geojson --lot-id LotB
+python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_a_layout.geojson'))") --lot-id LotA
+python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_b_layout.geojson'))") --lot-id LotB
 echo "Data loading complete."
 
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
