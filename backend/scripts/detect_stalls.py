@@ -160,8 +160,13 @@ def detect_stalls(image_path, geojson_path, output_path="detection_result.jpg", 
         print(f"Error saving image: {e}")
 
 if __name__ == "__main__":
-    # Path to a sample image from your dataset
-    sample_image = "/app/data/parking_lot/parking lot.v2i.yolov11/train/images/-2023-05-03-093043_png_jpg.rf.78bc02b53ea9338893e289a66e76f0b9.jpg"
-    geojson_file = "/app/data/lot_a_layout.geojson"
-    output_image = "/app/output/detection_result.jpg"
-    detect_stalls(sample_image, geojson_file, output_image, vehicle_size=2)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Detect parking stalls in an image.")
+    parser.add_argument("--image", type=str, default="/app/data/parking_lot/parking lot.v2i.yolov11/train/images/-2023-05-03-093043_png_jpg.rf.78bc02b53ea9338893e289a66e76f0b9.jpg", help="Path to the input image.")
+    parser.add_argument("--geojson", type=str, default="/app/data/lot_a_layout.geojson", help="Path to the GeoJSON file.")
+    parser.add_argument("--output", type=str, default="/app/output/detection_result.jpg", help="Path to save the output image.")
+    parser.add_argument("--vehicle-size", type=int, default=1, help="Vehicle size to consider for finding the best stall.")
+    args = parser.parse_args()
+
+    detect_stalls(args.image, args.geojson, args.output, args.vehicle_size)
