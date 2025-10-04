@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
 from dotenv import load_dotenv
 from ultralytics import YOLO
@@ -69,8 +69,33 @@ def detect_vehicle_stub():
 
 @app.get("/lots/{lot_id}/spots")
 def get_spots(lot_id: str, db: Session = Depends(get_db)):
-    spots = db.query(models.Spot).filter(models.Spot.lot_id == lot_id).all()
-    return [{"id": s.id, "row": s.row, "ev": s.ev, "ada": s.ada} for s in spots]
+    """
+    Returns a list of all stalls in a given lot, including their
+    geometry and features.
+    """
+    stalls = (
+        db.query(models.Stall)
+        .filter(models.Stall.lot_id == lot_id)
+        .options(joinedload(models.Stall.features))
+        .all()
+    )
+    
+    response = []
+    for s in stalls:
+        if s.features:
+            response.append({
+                "id": s.id,
+                "lot_id": s.lot_id,
+                "geom_wkt": s.geom_wkt,
+                "features": {
+                    "is_ada": s.features.is_ada,
+                    "is_ev": s.features.is_ev,
+                    "connectors": s.features.connectors,
+                    "width_class": s.features.width_class,
+                    "dist_to_entrance": s.features.dist_to_entrance
+                }
+            })
+    return response
 
 @app.post("/recommend")
 def recommend_stub():
