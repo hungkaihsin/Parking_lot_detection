@@ -28,9 +28,9 @@
 
 ### Week 2 (Sep 29–Oct 5) — Geometry + Vision → Stalls
 **Jerry**
-- Boxes→stall mapping + **hysteresis** (ON IoU≈0.12, OFF≈0.05, steady=8–12).  
-- **Ignore mask** for non‑lot areas; CLI `tools/run_video.py … --polygons --cfg`.
-- **Done:** 2–3 min **day** clip has <1 visible flicker/row; ≥90% stall states correct (spot‑check).
+- **Contextual Reasoning (Self-Contained):** Temporarily calculate neighboring stalls from GeoJSON to improve detection robustness.
+- **Ignore Mask (Independent):** Use GeoJSON files to define parking lot boundaries and ignore detections outside of them.
+- **Performance Evaluation (Independent):** Calculate precision, recall, F1-score, and mAP on the test set.
 
 **Daniel**
 - DB tables: `stalls`, `stall_features(is_ev,is_ada,connectors,width_class,dist_to_entrance)`, `neighbors`, `events`.  
