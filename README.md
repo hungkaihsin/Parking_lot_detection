@@ -263,22 +263,22 @@ Use the `/recommend/nl` endpoint to find parking spots using natural language qu
 
 ```bash
 # Basic requests
-curl -X POST http://127.0.0.1:8000/docs#/default/recommend_nl_recommend_nl_post \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"text": "compact car spot"}'
 
 # EV charging
-curl -X POST http://127.0.0.1:8000/docs#/default/recommend_nl_recommend_nl_post \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"text": "ev spot with fast charger"}'
 
 # Accessibility
-curl -X POST http://127.0.0.1:8000/docs#/default/recommend_nl_recommend_nl_post \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"text": "handicap parking near entrance"}'
 
 # Complex requests
-curl -X POST http://127.0.0.1:8000/docs#/default/recommend_nl_recommend_nl_post \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"text": "full size buffered ev spot with ccs"}'
 ```
