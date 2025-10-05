@@ -2,39 +2,80 @@
 import re
 
 def parse_request(text: str) -> dict:
-    """Parses a natural language request into structured filters."""
-    t = text.lower()
+    """
+    Parses a parking/EV request and returns a dictionary with extracted features.
+    """
+    text_lower = text.lower()
     result = {}
 
-    # EV / electric
-    if "ev" in t or "electric" in t:
-        result["ev"] = True
+    # Helper function to check if a keyword is negated
+    def is_negated(keyword, text):
+        # Patterns that indicate negation of the keyword
+        negation_patterns = [
+            rf"\bwithout\b.*{keyword}",
+            rf"\bno\b.*{keyword}",
+            rf"\bnot\b.*{keyword}",
+            rf"\bnot for\b.*{keyword}",
+            rf"{keyword}.*\bnot\b",
+            rf"{keyword}.*\bno\b",
+            rf"{keyword}.*\bwithout\b",
+            rf"{keyword}.*\bnot for\b",
+        ]
+        return any(re.search(pattern, text) for pattern in negation_patterns)
 
-    # ADA / disabled
-    if "ada" in t or "disabled" in t or "handicap" in t:
+    # ADA detection - simple and direct
+    if re.search(r"\b(handicap|ada|disabled)\b", text_lower):
         result["ada"] = True
 
-    # Near entrance
-    if "near" in t or "close" in t or "entrance" in t:
-        result["near"] = True
+    # EV detection with improved negation handling
+    ev_mentioned = re.search(r"\bev\b|\belectric\b", text_lower)
+    if ev_mentioned:
+        # Use the is_negated function for EV as well
+        ev_negated = is_negated(r"(ev|electric)", text_lower)
+        
+        # Don't mark EV if it's about adjacent empty spots
+        adjacent_ev = re.search(r"(empty|between).*(ev|electric)", text_lower)
+        
+        if not ev_negated and not adjacent_ev:
+            result["ev"] = True
 
-    # Between two empty spots (buffered)
-    if "between two empty" in t or "buffered" in t:
+    # Vehicle size detection
+    if re.search(r"\bcompact\b|\bsmall car\b", text_lower):
+        result["size"] = "compact"
+    elif re.search(r"\bmidsize\b", text_lower):
+        result["size"] = "midsize"
+    elif re.search(r"\bsuv\b", text_lower):
+        result["size"] = "suv"
+    elif re.search(r"\bfull size\b|\bfull\b", text_lower):
+        result["size"] = "full"
+    elif re.search(r"\btruck\b", text_lower):
+        result["size"] = "truck"
+
+    # Connector type detection with negation handling
+    if (re.search(r"\b(dc fast|fast charger|fast charging|dc_fast)\b", text_lower) and 
+        not is_negated(r"(fast charger|fast charging|dc fast)", text_lower)):
+        result["connector"] = "dc_fast"
+    elif (re.search(r"\bccs\b", text_lower) and 
+          not is_negated(r"ccs", text_lower)):
+        result["connector"] = "ccs"
+    elif (re.search(r"\bj1772\b", text_lower) and 
+          not is_negated(r"j1772", text_lower)):
+        result["connector"] = "j1772"
+
+    # Buffered detection
+    if re.search(r"\bbuffered\b|\bbetween two\b", text_lower):
         result["buffered"] = True
 
-    # Car size
-    for size in ["compact", "midsize", "full", "suv", "truck"]:
-        if size in t:
-            result["size"] = size
-            break
-
-    # Connectors
-    if "j1772" in t:
-        result["connector"] = "j1772"
-    elif "ccs" in t:
-        result["connector"] = "ccs"
-    elif "fast" in t or "dc" in t:
-        result["connector"] = "dc_fast"
+    # Near detection - more flexible patterns
+    # Check for any "near" mention first, then filter out unwanted cases
+    if re.search(r"\bnear\b|\bclose to\b", text_lower):
+        # Now filter out cases where near shouldn't be true
+        has_far = re.search(r"\bfar\b|\bfar from\b|\bfar away\b", text_lower)
+        near_exit = re.search(r"\bnear.*exit\b", text_lower)
+        near_stadium = re.search(r"\bnear.*stadium\b", text_lower)
+        
+        # If near is mentioned AND it's not about exit/far/stadium, set near=True
+        if not has_far and not near_exit and not near_stadium:
+            result["near"] = True
 
     return result
-
