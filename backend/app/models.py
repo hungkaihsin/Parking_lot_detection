@@ -54,6 +54,7 @@ class Event(Base):
     stall_id = Column(String, ForeignKey("stalls.id"), nullable=False)
     ts = Column(TIMESTAMP, default=datetime.datetime.utcnow)
     event_type = Column(String, nullable=False) # e.g., "occupy", "vacate"
+    conf = Column(Float)
     
     # Relationship
     stall = relationship("Stall", back_populates="events")
@@ -77,6 +78,7 @@ class SpotStatus(Base):
     # Changed ForeignKey to stalls.id
     spot_id = Column(String, ForeignKey("stalls.id"), primary_key=True)
     state = Column(String, nullable=False)      # FREE or TAKEN
+    conf = Column(Float)
 
 # 5) Detections
 class Detection(Base):
