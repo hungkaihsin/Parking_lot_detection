@@ -8,6 +8,7 @@
 
 # Data & outputs
 backend/data/**
+!backend/data/videos/
 backend/runs/**
 backend/output/
 backend/configs/_sweeps/**
