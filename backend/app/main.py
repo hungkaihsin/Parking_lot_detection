@@ -125,7 +125,6 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
         elif not is_now_occupied and stall.is_occupied:
             # Vehicle has departed
             stall.is_occupied = False
-            db.add(stall)
             db.add(models.Event(stall_id=stall.id, event_type="leave"))
             departures.append(stall.id)
 
