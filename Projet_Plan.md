@@ -47,6 +47,7 @@
 
 ### Week 3 (Oct 6–Oct 12) — Occupancy Service + Day MVP
 **Jerry**
+- **Build Stall Layout Editor:** Create a GUI tool (`scripts/create_layout.py`) to draw and save stall polygons to GeoJSON files.
 - Emit **events**: `arrive/leave (ts, stall_id, conf)`; write to DB.  
 - Produce `runs/w2_day_eval/` overlays + CSV.  
 - **Done:** events align with overlays on sample.

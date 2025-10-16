@@ -20,6 +20,7 @@ class Stall(Base):
     geom_wkt = Column(Text, nullable=False)
     center_x = Column(Float)
     center_y = Column(Float)
+    is_occupied = Column(Boolean, default=False, nullable=False)
 
     # Relationships
     features = relationship("StallFeature", back_populates="stall", uselist=False, cascade="all, delete-orphan")
@@ -51,9 +52,10 @@ class StallFeature(Base):
 class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    stall_id = Column(String, ForeignKey("stalls.id"), nullable=False)
+    stall_id = Column(String, ForeignKey("stalls.id", ondelete="CASCADE"), nullable=False)
     ts = Column(TIMESTAMP, default=datetime.datetime.utcnow)
     event_type = Column(String, nullable=False) # e.g., "occupy", "vacate"
+    conf = Column(Float)
     
     # Relationship
     stall = relationship("Stall", back_populates="events")
@@ -77,6 +79,7 @@ class SpotStatus(Base):
     # Changed ForeignKey to stalls.id
     spot_id = Column(String, ForeignKey("stalls.id"), primary_key=True)
     state = Column(String, nullable=False)      # FREE or TAKEN
+    conf = Column(Float)
 
 # 5) Detections
 class Detection(Base):

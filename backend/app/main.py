@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, UploadFile, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
 from dotenv import load_dotenv
@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional
 
 from .db import get_db
 from . import models
+from .detection import get_occupied_stalls
 from . import recommender
 
 from .chat import router as chat_router
@@ -118,6 +119,45 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
                 }
             })
     return response
+
+@app.post("/lots/{lot_id}/predict")
+async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(get_db)):
+    """
+    Accepts an image of a parking lot, runs stall detection,
+    updates stall occupancy states, and logs arrival/departure events.
+    """
+    image_bytes = await file.read()
+    stalls = db.query(models.Stall).filter(models.Stall.lot_id == lot_id).all()
+
+    if not stalls:
+        return {"error": f"No stalls found for lot_id: {lot_id}"}
+
+    occupied_ids = set(get_occupied_stalls(model, image_bytes, stalls))
+
+    arrivals = []
+    departures = []
+
+    for stall in stalls:
+        is_now_occupied = stall.id in occupied_ids
+        if is_now_occupied and not stall.is_occupied:
+            # Vehicle has arrived
+            stall.is_occupied = True
+            db.add(models.Event(stall_id=stall.id, event_type="arrive"))
+            arrivals.append(stall.id)
+        elif not is_now_occupied and stall.is_occupied:
+            # Vehicle has departed
+            stall.is_occupied = False
+            db.add(models.Event(stall_id=stall.id, event_type="leave"))
+            departures.append(stall.id)
+
+    db.commit()
+
+    return {
+        "lot_id": lot_id,
+        "arrivals": arrivals,
+        "departures": departures,
+        "occupied_stalls_count": len(occupied_ids),
+    }
 
 class RecommendationRequest(BaseModel):
     is_ada: Optional[bool] = None
