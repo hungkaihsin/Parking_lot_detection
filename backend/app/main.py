@@ -97,8 +97,28 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
             })
     return response
 
+from fastapi import FastAPI, Depends, Body
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class RecommendRequest(BaseModel):
+    size: Optional[str] = Field(None, example="midsize", description="Desired vehicle size (compact, midsize, full, suv, truck)")
+    ev: Optional[bool] = Field(None, example=True, description="Requires EV charging")
+    connector: Optional[str] = Field(None, example="j1772", description="Required connector type (j1772, ccs, dc_fast)")
+    ada: Optional[bool] = Field(None, description="Requires ADA accessibility")
+    buffered: Optional[bool] = Field(None, description="Prefers a buffered spot (between two empty spots)")
+    near: Optional[bool] = Field(None, example=True, description="Prefers a spot near the entrance")
+
 @app.post("/recommend")
-def recommend_stub():
+def recommend_stub(request: RecommendRequest = Body(
+    ...,
+    example={
+        "size": "midsize",
+        "ev": True,
+        "connector": "j1772",
+        "near": True
+    }
+)):
     return {
         "top_spots": [
             {"id": "A-27", "reason": "Near entrance, EV-ready"},
