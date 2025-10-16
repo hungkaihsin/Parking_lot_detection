@@ -10,7 +10,7 @@ from shapely import wkt
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.models import Base, Stall, StallFeature, stall_neighbors
+from app.models import Base, Stall, StallFeature, SpotStatus, stall_neighbors
 from app.db import DATABASE_URL
 
 def get_db_session():
@@ -30,13 +30,18 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
 
     # 1. Idempotency: Clear existing data for the specified lot_id
     print(f"Clearing existing stall data for lot: {lot_id}...")
-    # This is more complex to do correctly for neighbors, so for now we still clear the whole table.
-    # A more advanced implementation would handle this more granularly.
-    db.execute(text(f"DELETE FROM {stall_neighbors.name}")) 
-    db.query(StallFeature).filter(StallFeature.id.in_(
-        db.query(Stall.id).filter(Stall.lot_id == lot_id)
-    )).delete(synchronize_session=False)
-    db.query(Stall).filter(Stall.lot_id == lot_id).delete(synchronize_session=False)
+    
+    # Get the IDs of all stalls belonging to the current lot to perform cascading deletes
+    stall_ids_in_lot = db.query(Stall.id).filter(Stall.lot_id == lot_id).subquery()
+
+    # Delete dependent entries first to avoid foreign key violations
+    db.query(SpotStatus).filter(SpotStatus.spot_id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
+    db.execute(text(f"DELETE FROM {stall_neighbors.name}")) # This was in the original code
+    db.query(StallFeature).filter(StallFeature.id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
+    
+    # Now, it's safe to delete the stalls themselves
+    db.query(Stall).filter(Stall.id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
+    
     db.commit()
     print("Existing data cleared.")
 

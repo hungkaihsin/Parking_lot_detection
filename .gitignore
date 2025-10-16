@@ -7,20 +7,24 @@
 .env
 
 # Data & outputs
-data/**
-runs/**
-configs/_sweeps/**
-!data/README.md           # keep a tiny pointer file if you want
-!data/processed/.keep     # optional empty file to keep the folder
-data/overlays/**
-data/car_archive/**
-backend/data/parking_lot/
+backend/data/**
+!backend/data/videos/
+backend/runs/**
 backend/output/
+backend/configs/_sweeps/**
+!backend/data/README.md
+!backend/data/processed/.keep
 
 # Models
-models/*.pt
-models/*.onnx
-models/*.engine
+backend/models/*.pt
+backend/models/*.onnx
+backend/models/*.engine
+
+# Downloaded models
+backend/yolov8n.pt
+
+# Archives
+*.zip
 
 # OS / editor
 .DS_Store
