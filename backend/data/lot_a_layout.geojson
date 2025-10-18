@@ -33,8 +33,9 @@
       "properties": {
         "id": "6b93f958-988c-41b2-8b13-6ab71876eda9",
         "imagePath": "148521975.png",
-        "is_ev": false,
+        "is_ev": true,
         "is_ada": false,
+        "connectors": "J1772",
         "width_class": 3,
         "dist_to_entrance": null,
         "neighbors": [
@@ -78,8 +79,9 @@
       "properties": {
         "id": "d22d8146-5d35-45d1-aed2-68dc38630612",
         "imagePath": "148521975.png",
-        "is_ev": false,
+        "is_ev": true,
         "is_ada": false,
+        "connectors": "CCS",
         "width_class": 3,
         "dist_to_entrance": null,
         "neighbors": [
@@ -119,8 +121,9 @@
       "properties": {
         "id": "bfd4238e-6662-49d5-8a5c-bd1f602eee47",
         "imagePath": "156886202.png",
-        "is_ev": false,
+        "is_ev": true,
         "is_ada": false,
+        "connectors": "J1772, CCS",
         "width_class": 3,
         "dist_to_entrance": null,
         "neighbors": [
@@ -162,7 +165,7 @@
         "id": "715b8487-d6c3-4390-bb70-07dd049fab42",
         "imagePath": "156886202.png",
         "is_ev": false,
-        "is_ada": false,
+        "is_ada": true,
         "width_class": 3,
         "dist_to_entrance": null,
         "neighbors": [
@@ -203,14 +206,15 @@
       "properties": {
         "id": "bca26b47-751f-4f72-9c22-3195ed304bde",
         "imagePath": "156886202.png",
-        "is_ev": false,
-        "is_ada": false,
+        "is_ev": true,
+        "is_ada": true,
         "width_class": 3,
         "dist_to_entrance": null,
         "neighbors": [
           "bfd4238e-6662-49d5-8a5c-bd1f602eee47",
           "715b8487-d6c3-4390-bb70-07dd049fab42"
-        ]
+        ],
+        "connectors": "J1772"
       }
     },
     {
@@ -247,7 +251,7 @@
         "imagePath": "219035790.png",
         "is_ev": false,
         "is_ada": false,
-        "width_class": 3,
+        "width_class": 1,
         "dist_to_entrance": null,
         "neighbors": [
           "e81cb579-5d02-4fe1-bfe8-ea9bae51cab3",
@@ -290,7 +294,7 @@
         "imagePath": "219035790.png",
         "is_ev": false,
         "is_ada": false,
-        "width_class": 3,
+        "width_class": 2,
         "dist_to_entrance": null,
         "neighbors": [
           "d072f553-2482-46ae-a487-2cbd1b126eaa",
@@ -343,15 +347,16 @@
       "properties": {
         "id": "cefaa631-0562-453e-9e7e-a7f1d6189bf5",
         "imagePath": "219035790.png",
-        "is_ev": false,
+        "is_ev": true,
         "is_ada": false,
-        "width_class": 3,
+        "width_class": 1,
         "dist_to_entrance": null,
         "neighbors": [
           "ad94ae07-a07a-4906-99f6-be45609425d9",
           "e81cb579-5d02-4fe1-bfe8-ea9bae51cab3",
           "d072f553-2482-46ae-a487-2cbd1b126eaa"
-        ]
+        ],
+        "connectors": "CCS"
       }
     },
     {
@@ -451,8 +456,8 @@
         "id": "ad94ae07-a07a-4906-99f6-be45609425d9",
         "imagePath": "219035790.png",
         "is_ev": false,
-        "is_ada": false,
-        "width_class": 3,
+        "is_ada": true,
+        "width_class": 2,
         "dist_to_entrance": null,
         "neighbors": [
           "cefaa631-0562-453e-9e7e-a7f1d6189bf5",
@@ -493,9 +498,9 @@
       "properties": {
         "id": "e36ab617-a48f-472e-8d81-ff01d7827469",
         "imagePath": "190423072.png",
-        "is_ev": false,
+        "is_ev": true,
         "is_ada": false,
-        "width_class": 3,
+        "width_class": 2,
         "dist_to_entrance": null,
         "neighbors": [
           "d40a48b4-3126-4340-a28f-ddcef6344755",
@@ -503,7 +508,8 @@
           "7dab1a23-bdd6-4019-8024-ce7f6f6131b4",
           "bce6d0a8-f68d-49a9-bb40-c165ac2c908f",
           "ab6c087f-a556-4819-aed0-b6515930528e"
-        ]
+        ],
+        "connectors": "J1772"
       }
     },
     {
