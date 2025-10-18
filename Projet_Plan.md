@@ -66,8 +66,13 @@
 
 ### Week 4 (Oct 13–Oct 19) — Recommender v1 (Structured)
 **Jerry**
+
+**Parking Lot Detector:**
 - Finalize `configs/detector_day.yaml` via threshold sweep.  
 - **Done:** day F1 (holdout) ≥ **0.88**.
+
+**Car Recognition Model:**
+- **Goal:** Build a model to identify car make and model from an image.
 
 **Daniel**
 - **Ranking v1:** hard filters (EV/connector/ADA/size‑fit), soft prefs (−distance, +buffered, +size‑match).  

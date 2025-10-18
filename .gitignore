@@ -2,9 +2,14 @@
 *.pyc
 *.pyo
 *.log
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Env & local config
 .env
+.env.local
+.env.*.local
 
 # Data & outputs
 data/**
@@ -16,13 +21,38 @@ data/overlays/**
 data/car_archive/**
 backend/data/parking_lot/
 backend/output/
+backend/logs/*.log
 
-# Models
+# Models & weights
 models/*.pt
 models/*.onnx
 models/*.engine
+models/*.pth
+models/*.h5
+*.weights
 
-# OS / editor
+# Training artifacts
+runs/detect/
+runs/train/
+runs/val/
+*.csv
+!data/processed/*.csv
+
+# Temporary files
+*.tmp
+*.temp
+*~
 .DS_Store
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Dependency analysis
+deptry_report.txt
+requirements-analysis.txt
+
+# Backup files
+*.zip
+*.tar.gz
+*.bak
