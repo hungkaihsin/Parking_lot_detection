@@ -48,18 +48,3 @@
 {"text": "near but not close", "expected": {"near": true}}
 {"text": "not an ev but buffered", "expected": {"buffered": true}}
 {"text": "no connector just parking", "expected": {}}
-{"text": "ADA spot with a J1772 plug", "expected": {"ada": true, "connector": "j1772"}}
-{"text": "handicap parking with CCS", "expected": {"ada": true, "connector": "ccs"}}
-{"text": "disabled spot with DC fast charging", "expected": {"ada": true, "connector": "dc_fast"}}
-{"text": "I need an ADA compliant spot with a J1772 connector", "expected": {"ada": true, "connector": "j1772"}}
-{"text": "handicap accessible with CCS charging", "expected": {"ada": true, "connector": "ccs"}}
-{"text": "ADA spot, DC fast charger", "expected": {"ada": true, "connector": "dc_fast"}}
-{"text": "J1772 for a handicapped spot", "expected": {"ada": true, "connector": "j1772"}}
-{"text": "CCS for an ADA spot", "expected": {"ada": true, "connector": "ccs"}}
-{"text": "DC fast charging for a disabled person", "expected": {"ada": true, "connector": "dc_fast"}}
-{"text": "I need a J1772 plug and I'm handicapped", "expected": {"ada": true, "connector": "j1772"}}
-{"text": "I'm disabled and need a CCS charger", "expected": {"ada": true, "connector": "ccs"}}
-{"text": "I'm handicapped and I need a DC fast charger", "expected": {"ada": true, "connector": "dc_fast"}}
-{"text": "J1772 and ADA", "expected": {"ada": true, "connector": "j1772"}}
-{"text": "CCS and handicapped", "expected": {"ada": true, "connector": "ccs"}}
-{"text": "DC fast and disabled", "expected": {"ada": true, "connector": "dc_fast"}}

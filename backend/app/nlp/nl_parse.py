@@ -24,7 +24,7 @@ def parse_request(text: str) -> dict:
         return any(re.search(pattern, text) for pattern in negation_patterns)
 
     # ADA detection - simple and direct
-    if re.search(r"\b(handicap|handicapped|ada|disabled|accessible)\b", text_lower):
+    if re.search(r"\b(handicap|ada|disabled)\b", text_lower):
         result["ada"] = True
 
     # EV detection with improved negation handling
