@@ -12,24 +12,24 @@ __pycache__/
 .env.*.local
 
 # Data & outputs
-data/**
-runs/**
-configs/_sweeps/**
-!data/README.md           # keep a tiny pointer file if you want
-!data/processed/.keep     # optional empty file to keep the folder
-data/overlays/**
-data/car_archive/**
-backend/data/parking_lot/
+backend/data/**
+!backend/data/videos/
+!backend/data/README.md
+!backend/data/processed/.keep
+backend/runs/**
 backend/output/
 backend/logs/*.log
+backend/configs/_sweeps/**
 
 # Models & weights
-models/*.pt
-models/*.onnx
-models/*.engine
-models/*.pth
-models/*.h5
+backend/models/*.pt
+backend/models/*.onnx
+backend/models/*.engine
+backend/models/*.pth
+backend/models/*.h5
 *.weights
+backend/yolov8n.pt
+backend/yolov8s.pt
 
 # Training artifacts
 runs/detect/
