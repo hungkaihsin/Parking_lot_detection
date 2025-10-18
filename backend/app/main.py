@@ -148,6 +148,9 @@ class RecommendationRequest(BaseModel):
     is_ev: Optional[bool] = None
     connector: Optional[str] = None
     size_class: Optional[int] = None
+    size: Optional[str] = Field(None, example="midsize", description="Desired vehicle size (compact, midsize, full, suv, truck)")
+    near: Optional[bool] = Field(None, example=True, description="Prefers a spot near the entrance")
+    buffered: Optional[bool] = Field(None, description="Prefers a buffered spot (between two empty spots)")
 
 @app.post("/recommend")
 def recommend(
@@ -167,10 +170,18 @@ def recommend(
         .all()
     )
 
+    # 2. Prepare preferences for the recommender
+    preferences = request.dict(exclude_unset=True)
+    
+    # Map size string to size_class integer
+    size_map = {"compact": 0, "midsize": 1, "full": 2, "suv": 3, "truck": 4}
+    if "size" in preferences and preferences["size"] in size_map:
+        preferences["size_class"] = size_map[preferences["size"]]
+
     # 2. Get recommendations
     recommendations = recommender.recommend_stalls(
         available_stalls=available_stalls,
-        preferences=request.dict()
+        preferences=preferences
     )
 
     # 3. Log the decision
@@ -179,7 +190,7 @@ def recommend(
     
     log_entry = {
         "request_id": str(start_time.timestamp()),
-        "preferences": request.dict(),
+        "preferences": preferences,
         "num_candidates": len(available_stalls),
         "num_results": len(recommendations),
         "top_recommendation": recommendations[0] if recommendations else None,
