@@ -26,7 +26,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    shm_size: '2gb'
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
     env_file: .env
     depends_on:
       db:
@@ -47,6 +53,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
     depends_on:
       api:
         condition: service_healthy

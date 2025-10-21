@@ -1,18 +1,33 @@
-alembic==1.16.5
+# Core API
 fastapi==0.116.2
-numpy==2.2.6
-opencv-python==4.12.0.88
-pydantic==2.11.9
-python-dotenv==1.1.1
-PyYAML==6.0.2
-shapely==2.1.1
-SQLAlchemy==2.0.43
-torch==2.8.0
-ultralytics==8.3.203
-pandas
-psycopg2-binary==2.9.10
 uvicorn==0.35.0
+python-dotenv==1.1.1
+pydantic==2.11.9
 starlette==0.48.0
+
+# Database
+sqlalchemy==2.0.43
+alembic==1.16.5
+psycopg2-binary==2.9.10
+
+# ML & Data
+pandas
+numpy==2.2.6
+scikit-learn
+ultralytics==8.3.203
+torch==2.8.0
+opencv-python==4.12.0.88
+shapely==2.1.1
+
+# NLP
+spacy
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
+nltk
+
+# Testing
 pytest==8.4.2
 pytest-timeout==2.4.0
+
+# Utilities
+PyYAML==6.0.2
 python-multipart

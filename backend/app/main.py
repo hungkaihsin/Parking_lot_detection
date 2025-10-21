@@ -1,15 +1,35 @@
-from fastapi import FastAPI, Depends, UploadFile
+from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
 from dotenv import load_dotenv
 from ultralytics import YOLO
 import torch
+import logging
+import datetime
+import os
 
 from .db import get_db
 from . import models
 from .detection import get_occupied_stalls
-
+from . import recommender
 from .chat import router as chat_router
+
+# --- Logging Setup ---
+# Create logs directory if it doesn't exist
+os.makedirs("logs", exist_ok=True)
+
+# Set up logging
+log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_file = 'logs/recommendations.log'
+file_handler = logging.FileHandler(log_file)
+file_handler.setFormatter(log_formatter)
+file_handler.setLevel(logging.INFO)
+app_logger = logging.getLogger('recommender_api')
+app_logger.addHandler(file_handler)
+app_logger.setLevel(logging.INFO)
+
 
 # Load .env (ensures DATABASE_URL is available)
 load_dotenv()
@@ -47,20 +67,6 @@ def detect_vehicle_stub():
     if not model_loaded:
         return {"error": "model not loaded"}
         
-    # for now just a placeholder — later replace with uploaded image/frame
-    # results = model.predict("data/processed/car_specs_v0_filtered.csv", imgsz=640)  
-    # detections = []
-    # for r in results:
-    #     for box in r.boxes:
-    #         detections.append({
-    #             "x1": float(box.xyxy[0][0]),
-    #             "y1": float(box.xyxy[0][1]),
-    #             "x2": float(box.xyxy[0][2]),
-    #             "y2": float(box.xyxy[0][3]),
-    #             "conf": float(box.conf[0]),
-    #             "cls": model.names[int(box.cls[0])]
-    #         })
-    # return {"detections": detections}
     return {
         "detections": [
             {"x1": 120.0, "y1": 200.0, "x2": 320.0, "y2": 400.0, "conf": 0.87, "cls": "car"},
@@ -137,15 +143,64 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
         "occupied_stalls_count": len(occupied_ids),
     }
 
+class RecommendationRequest(BaseModel):
+    is_ada: Optional[bool] = None
+    is_ev: Optional[bool] = None
+    connector: Optional[str] = None
+    size_class: Optional[int] = None
+    size: Optional[str] = Field(None, example="midsize", description="Desired vehicle size (compact, midsize, full, suv, truck)")
+    near: Optional[bool] = Field(None, example=True, description="Prefers a spot near the entrance")
+    buffered: Optional[bool] = Field(None, description="Prefers a buffered spot (between two empty spots)")
+
 @app.post("/recommend")
-def recommend_stub():
-    return {
-        "top_spots": [
-            {"id": "A-27", "reason": "Near entrance, EV-ready"},
-            {"id": "A-15", "reason": "Wide space, buffered"},
-            {"id": "B-03", "reason": "Close to exit"}
-        ]
+def recommend(
+    request: RecommendationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Recommends parking stalls based on structured user preferences.
+    """
+    start_time = datetime.datetime.now()
+
+    # 1. Get all stalls from the database
+    # In a real application, you would filter for available stalls here
+    available_stalls = (
+        db.query(models.Stall)
+        .options(joinedload(models.Stall.features))
+        .all()
+    )
+
+    # 2. Prepare preferences for the recommender
+    preferences = request.dict(exclude_unset=True)
+    
+    # Map size string to size_class integer
+    size_map = {"compact": 0, "midsize": 1, "full": 2, "suv": 3, "truck": 4}
+    if "size" in preferences and preferences["size"] in size_map:
+        preferences["size_class"] = size_map[preferences["size"]]
+
+    # 2. Get recommendations
+    recommendations = recommender.recommend_stalls(
+        available_stalls=available_stalls,
+        preferences=preferences
+    )
+
+    # 3. Log the decision
+    end_time = datetime.datetime.now()
+    latency = (end_time - start_time).total_seconds()
+    
+    log_entry = {
+        "request_id": str(start_time.timestamp()),
+        "preferences": preferences,
+        "num_candidates": len(available_stalls),
+        "num_results": len(recommendations),
+        "top_recommendation": recommendations[0] if recommendations else None,
+        "latency_ms": latency * 1000,
     }
+    app_logger.info(log_entry)
+
+
+    return {"recommendations": recommendations[:3]}
+
 
 @app.post("/chat")
 def chat_stub(query: dict):

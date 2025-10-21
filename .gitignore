@@ -2,31 +2,57 @@
 *.pyc
 *.pyo
 *.log
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Env & local config
 .env
+.env.local
+.env.*.local
 
 # Data & outputs
 backend/data/**
 !backend/data/videos/
-backend/runs/**
-backend/output/
-backend/configs/_sweeps/**
 !backend/data/README.md
 !backend/data/processed/.keep
+backend/runs/**
+backend/output/
+backend/logs/*.log
+backend/configs/_sweeps/**
 
-# Models
+# Models & weights
 backend/models/*.pt
 backend/models/*.onnx
 backend/models/*.engine
-
-# Downloaded models
+backend/models/*.pth
+backend/models/*.h5
+*.weights
 backend/yolov8n.pt
+backend/yolov8s.pt
 
-# Archives
-*.zip
+# Training artifacts
+runs/detect/
+runs/train/
+runs/val/
+*.csv
+!data/processed/*.csv
 
-# OS / editor
+# Temporary files
+*.tmp
+*.temp
+*~
 .DS_Store
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Dependency analysis
+deptry_report.txt
+requirements-analysis.txt
+
+# Backup files
+*.zip
+*.tar.gz
+*.bak

@@ -1,6 +1,6 @@
 postprocess:
-  conf: 0.50         # will be overridden by sweeper
-  iou: 0.50          # will be overridden by sweeper
+  conf: 0.001
+  iou: 0.6
 overlay:
   enabled: true
-  out_dir: "data/overlays"   # the sweeper will use this base folder
+  out_dir: "data/overlays"
