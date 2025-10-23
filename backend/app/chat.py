@@ -1,6 +1,9 @@
 # backend/app/chat.py
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from . import models, recommender
+from .db import get_db
 from .nlp.nl_parse import parse_request
 
 router = APIRouter()
@@ -9,10 +12,20 @@ class ChatInput(BaseModel):
     text: str
 
 @router.post("/recommend/nl")
-def recommend_nl(input: ChatInput):
-    """Endpoint that receives text and returns parsed filters."""
-    parsed = parse_request(input.text)
-    return {"parsed": parsed}
+def recommend_nl(input: ChatInput, db: Session = Depends(get_db)):
+    """
+    Endpoint that receives text, parses it for preferences, and returns stall recommendations.
+    """
+    # 1. Parse the natural language request
+    preferences = parse_request(input.text)
+
+    # 2. Get available stalls from the database
+    available_stalls = db.query(models.Stall).filter(models.Stall.is_occupied == False).all()
+
+    # 3. Get recommendations
+    recommendations = recommender.recommend_stalls(available_stalls, preferences)
+
+    return {"recommendations": recommendations, "parsed_preferences": preferences}
 
 @router.post("/chat")
 def chat_stub(input: ChatInput):
