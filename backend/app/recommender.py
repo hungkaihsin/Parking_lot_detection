@@ -4,7 +4,9 @@ from .schemas import Recommendation, StallFeatureBase
 
 def recommend_stalls(
     available_stalls: List[models.Stall],
-    preferences: Dict[str, Any]
+    preferences: Dict[str, Any],
+    offset: int = 0,
+    limit: int = 100,
 ) -> List[Recommendation]:
     """
     Recommends parking stalls based on user preferences.
@@ -12,9 +14,11 @@ def recommend_stalls(
     Args:
         available_stalls: A list of available Stall objects.
         preferences: A dictionary of user preferences.
+        offset: The starting index for pagination.
+        limit: The maximum number of recommendations to return.
 
     Returns:
-        A ranked list of recommended stalls with reasons.
+        A ranked and paginated list of recommended stalls with reasons.
     """
     # 1. Hard Filters
     filtered_stalls = _apply_hard_filters(available_stalls, preferences)
@@ -22,8 +26,9 @@ def recommend_stalls(
     # 2. Soft Preferences (Ranking)
     ranked_stalls = _apply_soft_preferences(filtered_stalls, preferences)
 
-    # 3. Format Output
-    return _format_recommendations(ranked_stalls)
+    # 3. Pagination + Formatting
+    paginated_stalls = ranked_stalls[offset : offset + limit]
+    return _format_recommendations(paginated_stalls)
 
 def _apply_hard_filters(
     stalls: List[models.Stall],

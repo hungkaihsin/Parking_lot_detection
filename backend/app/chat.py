@@ -12,7 +12,7 @@ class ChatInput(BaseModel):
     text: str
 
 @router.post("/recommend/nl", response_model=schemas.NLRecommendationResponse)
-def recommend_nl(input: ChatInput, db: Session = Depends(get_db)):
+def recommend_nl(input: ChatInput, db: Session = Depends(get_db), offset: int = 0, limit: int = 100):
     """
     Endpoint that receives text, parses it for preferences, and returns stall recommendations.
     """
@@ -23,7 +23,7 @@ def recommend_nl(input: ChatInput, db: Session = Depends(get_db)):
     available_stalls = db.query(models.Stall).options(joinedload(models.Stall.features)).filter(models.Stall.is_occupied == False).all()
 
     # 3. Get recommendations
-    recommendations = recommender.recommend_stalls(available_stalls, preferences)
+    recommendations = recommender.recommend_stalls(available_stalls, preferences, offset=offset, limit=limit)
 
     return {"recommendations": recommendations, "parsed_preferences": preferences}
 
