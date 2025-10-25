@@ -144,13 +144,13 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     }
 
 class RecommendationRequest(BaseModel):
-    is_ada: Optional[bool] = None
-    is_ev: Optional[bool] = None
-    connector: Optional[str] = None
-    size_class: Optional[int] = None
+    is_ada: Optional[bool] = Field(None, example=False)
+    is_ev: Optional[bool] = Field(None, example=False)
+    connector: Optional[str] = Field(None, example="J1772")
+    size_class: Optional[int] = Field(None, example=1)
     size: Optional[str] = Field(None, example="midsize", description="Desired vehicle size (compact, midsize, full, suv, truck)")
-    near: Optional[bool] = Field(None, example=True, description="Prefers a spot near the entrance")
-    buffered: Optional[bool] = Field(None, description="Prefers a buffered spot (between two empty spots)")
+    near: Optional[bool] = Field(None, example=False)
+    buffered: Optional[bool] = Field(None, example=False, description="Prefers a buffered spot (between two empty spots)")
 
 @app.post("/recommend")
 def recommend(
@@ -183,6 +183,9 @@ def recommend(
         available_stalls=available_stalls,
         preferences=preferences
     )
+
+    if not recommendations:
+        raise HTTPException(status_code=404, detail="No stalls found matching the criteria.")
 
     # 3. Log the decision
     end_time = datetime.datetime.now()

@@ -68,11 +68,16 @@ def _apply_soft_preferences(
         reasons = []
 
         # 1. Distance to entrance (lower is better)
-        score -= stall.features.dist_to_entrance
-        reasons.append(f"Distance: {stall.features.dist_to_entrance:.2f}m")
+        if not preferences.get("near"):
+            score -= stall.features.dist_to_entrance
+            reasons.append(f"Distance: {stall.features.dist_to_entrance:.2f}m")
 
         # 2. Buffered (between two empty spots)
-        # This will be implemented in Week 5
+        if preferences.get("buffered"):
+            is_buffered = all(not n.is_occupied for n in stall.neighbors)
+            if is_buffered:
+                score += 0.5  # Add a bonus for buffered stalls
+                reasons.append("Buffered spot")
 
         # 3. Size match
         if preferences.get("size_class"):
