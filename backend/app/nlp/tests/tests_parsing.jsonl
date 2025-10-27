@@ -1,15 +1,15 @@
 {"text": "I need a fast charger for an electric truck", "expected": {"size": "truck", "ev": true, "connector": "dc_fast"}}
 {"text": "midsize spot near me", "expected": {"size": "midsize", "near": true}}
-{"text": "handicap spot, not an EV", "expected": {"ada": true}}
+{"text": "handicap spot, not an EV", "expected": {"ada": true, "ev": false}}
 {"text": "compact ev spot with CCS", "expected": {"size": "compact", "ev": true, "connector": "ccs"}}
 {"text": "truck spot between two empty ev spots", "expected": {"size": "truck", "buffered": true}}
-{"text": "compact car near exit", "expected": {"size": "compact"}}
-{"text": "midsize spot far from entrance", "expected": {"size": "midsize"}}
+{"text": "compact car near exit", "expected": {"size": "compact", "near_exit": true}}
+{"text": "midsize spot far from entrance", "expected": {"size": "midsize", "far_from_entrance": true}}
 {"text": "buffered spot for an EV", "expected": {"ev": true, "buffered": true}}
-{"text": "SUV spot with fast charger far away", "expected": {"size": "suv", "connector": "dc_fast"}}
+{"text": "SUV spot with fast charger far away", "expected": {"size": "suv", "connector": "dc_fast", "far_from_entrance": true}}
 {"text": "any spot with a J1772 plug", "expected": {"connector": "j1772"}}
 {"text": "full size buffered near entrance", "expected": {"size": "full", "buffered": true, "near": true}}
-{"text": "SUV spot far away is okay", "expected": {"size": "suv"}}
+{"text": "SUV spot far away is okay", "expected": {"size": "suv", "far_from_entrance": true}}
 {"text": "truck spot near the door", "expected": {"size": "truck", "near": true}}
 {"text": "midsize car only", "expected": {"size": "midsize"}}
 {"text": "disabled parking with DC fast charging", "expected": {"ada": true, "connector": "dc_fast"}}
@@ -21,32 +21,32 @@
 {"text": "SUV ev with J1772", "expected": {"size": "suv", "ev": true, "connector": "j1772"}}
 {"text": "full size close to the entrance", "expected": {"size": "full", "near": true}}
 {"text": "just a normal buffered spot", "expected": {"buffered": true}}
-{"text": "need an ada spot far away", "expected": {"ada": true}}
+{"text": "need an ada spot far away", "expected": {"ada": true, "far_from_entrance": true}}
 {"text": "truck ev with buffered space", "expected": {"size": "truck", "ev": true, "buffered": true}}
 {"text": "empty ev spots nearby", "expected": {}}
-{"text": "spots with no ev charging", "expected": {}}
-{"text": "not an electric vehicle", "expected": {}}
-{"text": "parking without fast charger", "expected": {}}
-{"text": "regular truck spot no ev", "expected": {"size": "truck"}}
-{"text": "midsize without charging", "expected": {"size": "midsize"}}
-{"text": "compact car not electric", "expected": {"size": "compact"}}
+{"text": "spots with no ev charging", "expected": {"ev": false}}
+{"text": "not an electric vehicle", "expected": {"ev": false}}
+{"text": "parking without fast charger", "expected": {"connector": "no_dc_fast"}}
+{"text": "regular truck spot no ev", "expected": {"size": "truck", "ev": false}}
+{"text": "midsize without charging", "expected": {"size": "midsize", "ev": false}}
+{"text": "compact car not electric", "expected": {"size": "compact", "ev": false}}
 {"text": "suv spot no connector needed", "expected": {"size": "suv"}}
-{"text": "full size without ev capability", "expected": {"size": "full"}}
-{"text": "handicap parking no charger", "expected": {"ada": true}}
-{"text": "buffered spot not for ev", "expected": {"buffered": true}}
-{"text": "near exit not entrance", "expected": {}}
-{"text": "far from door no ev", "expected": {}}
-{"text": "between two non-ev spots", "expected": {"buffered": true}}
-{"text": "no fast charging needed", "expected": {}}
-{"text": "truck spot without j1772", "expected": {"size": "truck"}}
-{"text": "compact no ccs required", "expected": {"size": "compact"}}
-{"text": "midsize far not near", "expected": {"size": "midsize"}}
-{"text": "suv parking no dc fast", "expected": {"size": "suv"}}
-{"text": "full size not electric", "expected": {"size": "full"}}
-{"text": "ada spot without charger", "expected": {"ada": true}}
-{"text": "buffered but not for ev", "expected": {"buffered": true}}
+{"text": "full size without ev capability", "expected": {"size": "full", "ev": false}}
+{"text": "handicap parking no charger", "expected": {"ada": true, "ev": false}}
+{"text": "buffered spot not for ev", "expected": {"buffered": true, "ev": false}}
+{"text": "near exit not entrance", "expected": {"near_exit": true, "near": false}}
+{"text": "far from door no ev", "expected": {"far_from_entrance": true, "ev": false}}
+{"text": "between two non-ev spots", "expected": {"buffered": true, "ev": false}}
+{"text": "no fast charging needed", "expected": {"connector": "no_dc_fast"}}
+{"text": "truck spot without j1772", "expected": {"size": "truck", "connector": "no_j1772"}}
+{"text": "compact no ccs required", "expected": {"size": "compact", "connector": "no_ccs"}}
+{"text": "midsize far not near", "expected": {"size": "midsize", "far_from_entrance": true, "near": false}}
+{"text": "suv parking no dc fast", "expected": {"size": "suv", "connector": "no_dc_fast"}}
+{"text": "full size not electric", "expected": {"size": "full", "ev": false}}
+{"text": "ada spot without charger", "expected": {"ada": true, "ev": false}}
+{"text": "buffered but not for ev", "expected": {"buffered": true, "ev": false}}
 {"text": "near but not close", "expected": {"near": true}}
-{"text": "not an ev but buffered", "expected": {"buffered": true}}
+{"text": "not an ev but buffered", "expected": {"ev": false, "buffered": true}}
 {"text": "no connector just parking", "expected": {}}
 {"text": "ADA spot with a J1772 plug", "expected": {"ada": true, "connector": "j1772"}}
 {"text": "handicap parking with CCS", "expected": {"ada": true, "connector": "ccs"}}
@@ -63,3 +63,17 @@
 {"text": "J1772 and ADA", "expected": {"ada": true, "connector": "j1772"}}
 {"text": "CCS and handicapped", "expected": {"ada": true, "connector": "ccs"}}
 {"text": "DC fast and disabled", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "not an EV spot", "expected": {"ev": false}}
+{"text": "no EV charging", "expected": {"ev": false}}
+{"text": "not ADA accessible", "expected": {"ada": false}}
+{"text": "no J1772 connector", "expected": {"connector": "no_j1772"}}
+{"text": "without CCS", "expected": {"connector": "no_ccs"}}
+{"text": "no DC fast charging", "expected": {"connector": "no_dc_fast"}}
+{"text": "not a compact spot", "expected": {"size": "not_compact"}}
+{"text": "not midsize", "expected": {"size": "not_midsize"}}
+{"text": "not full size", "expected": {"size": "not_full"}}
+{"text": "not for SUVs", "expected": {"size": "not_suv"}}
+{"text": "not for trucks", "expected": {"size": "not_truck"}}
+{"text": "not buffered", "expected": {"buffered": false}}
+{"text": "not near the entrance", "expected": {"near": false}}
+{"text": "not far from the entrance", "expected": {"far_from_entrance": false}}

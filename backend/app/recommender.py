@@ -1,19 +1,24 @@
 from typing import List, Dict, Any
 from . import models
+from .schemas import Recommendation, StallFeatureBase
 
 def recommend_stalls(
     available_stalls: List[models.Stall],
-    preferences: Dict[str, Any]
-) -> List[Dict[str, Any]]:
+    preferences: Dict[str, Any],
+    offset: int = 0,
+    limit: int = 100,
+) -> List[Recommendation]:
     """
     Recommends parking stalls based on user preferences.
 
     Args:
         available_stalls: A list of available Stall objects.
         preferences: A dictionary of user preferences.
+        offset: The starting index for pagination.
+        limit: The maximum number of recommendations to return.
 
     Returns:
-        A ranked list of recommended stalls with reasons.
+        A ranked and paginated list of recommended stalls with reasons.
     """
     # 1. Hard Filters
     filtered_stalls = _apply_hard_filters(available_stalls, preferences)
@@ -21,8 +26,9 @@ def recommend_stalls(
     # 2. Soft Preferences (Ranking)
     ranked_stalls = _apply_soft_preferences(filtered_stalls, preferences)
 
-    # 3. Format Output
-    return _format_recommendations(ranked_stalls)
+    # 3. Pagination + Formatting
+    paginated_stalls = ranked_stalls[offset : offset + limit]
+    return _format_recommendations(paginated_stalls)
 
 def _apply_hard_filters(
     stalls: List[models.Stall],
@@ -89,22 +95,27 @@ def _apply_soft_preferences(
 
 def _format_recommendations(
     ranked_stalls: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
-    """Formats the ranked stalls into the final output."""
+) -> List[Recommendation]:
+    """
+    Formats the ranked stalls into the final output using the Recommendation schema.
+    """
     recommendations = []
     for item in ranked_stalls:
         stall = item["stall"]
-        recommendations.append({
-            "stall_id": stall.id,
-            "lot_id": stall.lot_id,
-            "score": item["score"],
-            "reasons": item["reasons"],
-            "features": {
-                "is_ada": stall.features.is_ada,
-                "is_ev": stall.features.is_ev,
-                "connectors": stall.features.connectors,
-                "width_class": stall.features.width_class,
-                "dist_to_entrance": stall.features.dist_to_entrance,
-            }
-        })
+        recommendations.append(
+            Recommendation(
+                stall_id=stall.id,
+                lot_id=stall.lot_id,
+                score=item["score"],
+                reasons=item["reasons"],
+                features=StallFeatureBase(
+                    is_ada=stall.features.is_ada,
+                    is_ev=stall.features.is_ev,
+                    connectors=stall.features.connectors,
+                    width_class=stall.features.width_class,
+                    dist_to_entrance=stall.features.dist_to_entrance,
+                )
+            )
+        )
     return recommendations
+
