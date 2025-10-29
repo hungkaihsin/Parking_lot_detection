@@ -52,7 +52,7 @@ def _apply_hard_filters(
     if preferences.get("size_class"):
         filtered_stalls = [
             s for s in filtered_stalls
-            if s.features.width_class >= preferences["size_class"]
+            if s.features.width_class == preferences["size_class"]
         ]
 
     return filtered_stalls
