@@ -77,3 +77,8 @@
 {"text": "not buffered", "expected": {"buffered": false}}
 {"text": "not near the entrance", "expected": {"near": false}}
 {"text": "not far from the entrance", "expected": {"far_from_entrance": false}}
+{"text": "compact car only", "expected": {"size": "compact"}}
+{"text": "I drive a truck", "expected": {"size": "truck"}}
+{"text": "I drive an SUV", "expected": {"size": "suv"}}
+{"text": "I'm looking for a spot for my small car", "expected": {"size": "compact"}}
+{"text": "I have a large car", "expected": {"size": "full"}}

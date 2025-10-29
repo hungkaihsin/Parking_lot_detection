@@ -49,36 +49,56 @@ def parse_request(text: str) -> dict:
 
     # Vehicle size detection with negation
     size_found = False
-    if re.search(r"\bcompacts?\b|\bsmall cars?\b", text_lower):
-        if not is_negated(["compact", "small car"], text_lower):
+    drive_or_have_match = re.search(r"\b(drive|have)\s+(an?|my)?\s*(.*?)\b", text_lower)
+    if drive_or_have_match:
+        vehicle_desc = drive_or_have_match.group(3)
+        if re.search(r"\bcompacts?\b|\bsmall cars?\b", vehicle_desc):
             result["size"] = "compact"
-        else:
-            result["size"] = "not_compact"
-        size_found = True
-    elif re.search(r"\bmidsize(s)?\b", text_lower):
-        if not is_negated(["midsize"], text_lower):
+            size_found = True
+        elif re.search(r"\bmidsize(s)?\b", vehicle_desc):
             result["size"] = "midsize"
-        else:
-            result["size"] = "not_midsize"
-        size_found = True
-    elif re.search(r"\bsuvs?\b", text_lower):
-        if not is_negated(["suv"], text_lower):
+            size_found = True
+        elif re.search(r"\bsuvs?\b", vehicle_desc):
             result["size"] = "suv"
-        else:
-            result["size"] = "not_suv"
-        size_found = True
-    elif re.search(r"\bfull sizes?\b|\bfulls?\b", text_lower):
-        if not is_negated(["full size", "full"], text_lower):
+            size_found = True
+        elif re.search(r"\bfull sizes?\b|\bfulls?\b|\blarge cars?\b", vehicle_desc):
             result["size"] = "full"
-        else:
-            result["size"] = "not_full"
-        size_found = True
-    elif re.search(r"\btrucks?\b", text_lower):
-        if not is_negated(["truck"], text_lower):
+            size_found = True
+        elif re.search(r"\btrucks?\b", vehicle_desc):
             result["size"] = "truck"
-        else:
-            result["size"] = "not_truck"
-        size_found = True
+            size_found = True
+
+    if not size_found:
+        if re.search(r"\bcompacts?\b|\bsmall cars?\b", text_lower):
+            if not is_negated(["compact", "small car"], text_lower):
+                result["size"] = "compact"
+            else:
+                result["size"] = "not_compact"
+            size_found = True
+        elif re.search(r"\bmidsize(s)?\b", text_lower):
+            if not is_negated(["midsize"], text_lower):
+                result["size"] = "midsize"
+            else:
+                result["size"] = "not_midsize"
+            size_found = True
+        elif re.search(r"\bsuvs?\b", text_lower):
+            if not is_negated(["suv"], text_lower):
+                result["size"] = "suv"
+            else:
+                result["size"] = "not_suv"
+            size_found = True
+        elif re.search(r"\bfull sizes?\b|\bfulls?\b|\blarge cars?\b", text_lower):
+            if not is_negated(["full size", "full", "large car"], text_lower):
+                result["size"] = "full"
+            else:
+                result["size"] = "not_full"
+            size_found = True
+        elif re.search(r"\btrucks?\b", text_lower):
+            if not is_negated(["truck"], text_lower):
+                result["size"] = "truck"
+            else:
+                result["size"] = "not_truck"
+            size_found = True
 
     # Connector type detection with negation handling
     dc_fast_keywords = ["dc fast", "fast charger", "fast charging", "dc_fast"]

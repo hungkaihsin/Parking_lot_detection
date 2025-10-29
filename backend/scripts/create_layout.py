@@ -89,16 +89,23 @@ def main():
                 # Prompt for stall type in the terminal
                 is_ev_input = input("Is this an EV spot? (y/n): ").lower()
                 is_ada_input = input("Is this an ADA (disabled) spot? (y/n): ").lower()
+                width_class_input = input("Enter width class (0: Compact, 1: Midsize, 2: Full, 3: SUV, 4: Truck): ")
                 
                 is_ev = is_ev_input == 'y'
                 is_ada = is_ada_input == 'y'
+                try:
+                    width_class = int(width_class_input)
+                except ValueError:
+                    print("Invalid width class. Defaulting to 1 (Midsize).")
+                    width_class = 1
 
                 all_polygons.append({
                     "points": list(current_polygon_points),
                     "is_ev": is_ev,
-                    "is_ada": is_ada
+                    "is_ada": is_ada,
+                    "width_class": width_class
                 })
-                print(f"Completed polygon. EV: {is_ev}, ADA: {is_ada}")
+                print(f"Completed polygon. EV: {is_ev}, ADA: {is_ada}, Width Class: {width_class}")
                 current_polygon_points.clear()
             else:
                 print("A polygon must have at least 3 points.")
@@ -136,7 +143,8 @@ def main():
                     "properties": {
                         "id": stall_id,
                         "is_ev": poly_data['is_ev'],
-                        "is_ada": poly_data['is_ada']
+                        "is_ada": poly_data['is_ada'],
+                        "width_class": poly_data['width_class']
                     },
                     "geometry": {
                         "type": "Polygon",
