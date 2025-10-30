@@ -67,6 +67,36 @@ def main():
                     color = (0, 165, 255) # Orange for ADA
                 cv2.polylines(display_frame, [pts], isClosed=True, color=color, thickness=2)
 
+                # Calculate centroid for text placement
+                M = cv2.moments(pts)
+                if M['m00'] != 0:
+                    cx = int(M['m10'] / M['m00'])
+                    cy = int(M['m01'] / M['m00'])
+                else:
+                    cx, cy = pts[0][0][0], pts[0][0][1] # Fallback to first point if moment is zero
+
+                # Display badges/icons
+                text_offset_y = 0
+                if poly_data['is_ev']:
+                    cv2.putText(display_frame, "EV", (cx, cy + text_offset_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    text_offset_y += 15
+                if poly_data['is_ada']:
+                    cv2.putText(display_frame, "ADA", (cx, cy + text_offset_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    text_offset_y += 15
+                if poly_data['is_buffered']:
+                    cv2.putText(display_frame, "BUF", (cx, cy + text_offset_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    text_offset_y += 15
+                
+                width_class_map_reverse = {
+                    0: "Compact",
+                    1: "Midsize",
+                    2: "Full",
+                    3: "SUV",
+                    4: "Truck"
+                }
+                width_class_text = width_class_map_reverse.get(poly_data['width_class'], "Unknown")
+                cv2.putText(display_frame, width_class_text, (cx, cy + text_offset_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
         # Draw the current polygon being drawn
         if current_polygon_points:
             for point in current_polygon_points:
@@ -89,23 +119,30 @@ def main():
                 # Prompt for stall type in the terminal
                 is_ev_input = input("Is this an EV spot? (y/n): ").lower()
                 is_ada_input = input("Is this an ADA (disabled) spot? (y/n): ").lower()
-                width_class_input = input("Enter width class (0: Compact, 1: Midsize, 2: Full, 3: SUV, 4: Truck): ")
+                is_buffered_input = input("Is this a buffered spot? (y/n): ").lower()
+                width_class_input = input("Enter width class (Compact, Midsize, Full, SUV, Truck): ").lower()
                 
                 is_ev = is_ev_input == 'y'
                 is_ada = is_ada_input == 'y'
-                try:
-                    width_class = int(width_class_input)
-                except ValueError:
-                    print("Invalid width class. Defaulting to 1 (Midsize).")
-                    width_class = 1
+                is_buffered = is_buffered_input == 'y'
+
+                width_class_map = {
+                    "compact": 0,
+                    "midsize": 1,
+                    "full": 2,
+                    "suv": 3,
+                    "truck": 4
+                }
+                width_class = width_class_map.get(width_class_input, 1) # Default to Midsize
 
                 all_polygons.append({
                     "points": list(current_polygon_points),
                     "is_ev": is_ev,
                     "is_ada": is_ada,
+                    "is_buffered": is_buffered,
                     "width_class": width_class
                 })
-                print(f"Completed polygon. EV: {is_ev}, ADA: {is_ada}, Width Class: {width_class}")
+                print(f"Completed polygon. EV: {is_ev}, ADA: {is_ada}, Buffered: {is_buffered}, Width Class: {width_class_input} ({width_class})")
                 current_polygon_points.clear()
             else:
                 print("A polygon must have at least 3 points.")
@@ -144,6 +181,7 @@ def main():
                         "id": stall_id,
                         "is_ev": poly_data['is_ev'],
                         "is_ada": poly_data['is_ada'],
+                        "is_buffered": poly_data['is_buffered'],
                         "width_class": poly_data['width_class']
                     },
                     "geometry": {
