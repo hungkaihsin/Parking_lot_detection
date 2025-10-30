@@ -21,7 +21,9 @@ else:
     raise SystemExit("DB not ready after waiting.")
 PY
 
-
+echo "Applying database migrations..."
+alembic upgrade head
+echo "Database migrations applied."
 
 echo "Loading parking lot data..."
 python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_a_layout.geojson'))") --lot-id LotA
