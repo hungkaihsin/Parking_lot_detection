@@ -107,9 +107,9 @@
 
 ### Week 6 (Oct 27–Nov 2) — Night Start + Size v1
 **Jerry**
-- Collect **night** clip; add augments (exposure/blur); separate **night** config.  
+- Implement size-from-pixels v1 with a trained image classification model.
 - Implement **size‑from‑pixels v1** (box H/W/area thresholds).  
-- **Done:** night F1 ≥ **0.75**; size macro‑F1 ≥ **0.70** on 100 labeled crops.
+- **Done:** size macro‑F1 ≥ **0.70** on 100 labeled crops.
 
 **Daniel**
 - Enforce **size must‑fit** (truck ≠ compact).  

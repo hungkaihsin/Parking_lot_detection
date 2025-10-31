@@ -116,7 +116,8 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     if not stalls:
         return {"error": f"No stalls found for lot_id: {lot_id}"}
 
-    occupied_ids = set(get_occupied_stalls(model, image_bytes, stalls))
+    occupancy_data = get_occupied_stalls(model, image_bytes, stalls)
+    occupied_ids = set(occupancy_data.keys())
 
     arrivals = []
     departures = []
@@ -126,8 +127,9 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
         if is_now_occupied and not stall.is_occupied:
             # Vehicle has arrived
             stall.is_occupied = True
+            vehicle_size = occupancy_data.get(stall.id, {}).get("size", "unknown")
             db.add(models.Event(stall_id=stall.id, event_type="arrive"))
-            arrivals.append(stall.id)
+            arrivals.append({"stall_id": stall.id, "size": vehicle_size})
         elif not is_now_occupied and stall.is_occupied:
             # Vehicle has departed
             stall.is_occupied = False
