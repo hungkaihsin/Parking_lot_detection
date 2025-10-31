@@ -56,7 +56,7 @@ def _apply_hard_filters(
     if preferences.get("size_class") is not None:
         filtered_stalls = [
             s for s in filtered_stalls
-            if s.features.width_class == preferences["size_class"]
+            if s.features.width_class >= preferences["size_class"]
         ]
 
     return filtered_stalls
@@ -107,6 +107,8 @@ def _format_recommendations(
     Formats the ranked stalls into the final output using the Recommendation schema.
     """
     recommendations = []
+    reversed_size_map = {v: k for k, v in size_map.items()}
+
     for item in ranked_stalls:
         stall = item["stall"]
         badges = []
@@ -116,8 +118,11 @@ def _format_recommendations(
             badges.append("ADA")
         if all(not n.is_occupied for n in stall.neighbors):
             badges.append("Buffered")
+        
+        size_name = "Unknown"
         if stall.features.width_class is not None:
-            badges.append(size_map.get(stall.features.width_class, "Unknown"))
+            size_name = reversed_size_map.get(stall.features.width_class, "Unknown")
+            badges.append(size_name)
 
         recommendations.append(
             Recommendation(
@@ -131,7 +136,7 @@ def _format_recommendations(
                     connectors=stall.features.connectors,
                     width_class=stall.features.width_class,
                     dist_to_entrance=stall.features.dist_to_entrance,
-                    size=size_map.get(stall.features.width_class, "Unknown")
+                    size=size_name
                 ),
                 badges=badges
             )
