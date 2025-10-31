@@ -1,6 +1,91 @@
 # backend/app/nlp/nl_parse.py
 import re
 
+def flexible_keyword_match(keywords_list, text):
+    for k in keywords_list:
+        for match in re.finditer(f"({k})", text):
+            start, end = match.span()
+            if (start == 0 or not text[start-1].isalnum()) and \
+               (end == len(text) or not text[end].isalnum()):
+                return True
+    return False
+
+def is_negated(keywords: list[str], text_to_search: str, proximity: int = 7) -> bool:
+    text_lower = text_to_search.lower()
+    negation_words = ["not", "no", "don't", "do not", "without"]
+
+    for keyword_pattern in keywords:
+        # Find all occurrences of the keyword pattern in the text
+        # Use a more flexible regex to find the keyword, then validate it's a whole word
+        for match in re.finditer(f"({keyword_pattern})", text_lower):
+            # Ensure the match is a whole word
+            start, end = match.span()
+            if (start == 0 or not text_lower[start-1].isalnum()) and \
+               (end == len(text_lower) or not text_lower[end].isalnum()):
+                
+                keyword_start_char = match.start()
+                
+                # Check for negation words before the keyword match
+                for neg_word in negation_words:
+                    # Find the last occurrence of the negation word before the keyword match
+                    neg_word_index = text_lower.rfind(neg_word, 0, keyword_start_char)
+
+                    if neg_word_index != -1:
+                        # Calculate distance in words
+                        substring = text_lower[neg_word_index + len(neg_word):keyword_start_char]
+                        words_between = len(substring.split()) # Split by space to count words
+                        if words_between <= proximity:
+                            return True
+    return False
+
+def parse_vehicle_size(text: str) -> dict:
+    """
+    Parses vehicle size from a request and returns a dictionary with the extracted feature.
+    Handles 'only' and negation for vehicle sizes.
+    """
+    text_lower = text.lower()
+    result = {}
+
+    size_keywords = {
+        "compact": ["compacts?", "small cars?"],
+        "midsize": ["midsizes?"],
+        "suv": ["suvs?"],
+        "full": ["full sizes?", "fulls?", "large cars?"],
+        "truck": ["trucks?"]
+    }
+
+    # Check for "only" patterns first
+    for size_type, patterns in size_keywords.items():
+        for p in patterns:
+            # Use a more flexible regex for "only" patterns
+            only_match = re.search(rf"({p})(?:\s+\w+)*\s+only|only(?:\s+\w+)*\s+({p})", text_lower)
+            if only_match:
+                # Extract the matched keyword to check for whole word boundary
+                matched_keyword = only_match.group(1) if only_match.group(1) else only_match.group(2)
+                start, end = only_match.span()
+                
+                # Ensure the matched keyword is a whole word
+                if (start == 0 or not text_lower[start-1].isalnum()) and \
+                   (end == len(text_lower) or not text_lower[end].isalnum()):
+                    
+                    if is_negated([f"{size_type} only", f"only {size_type}"], text_lower):
+                        result["size"] = f"not_{size_type}_only"
+                    else:
+                        result["size"] = f"{size_type}_only"
+                    return result # Return immediately if "only" is found
+
+    # Then check for general size mentions
+    for size_type, patterns in size_keywords.items():
+        if any(re.search(rf"\b{p}\b", text_lower) for p in patterns):
+            negated_status = is_negated(patterns, text_lower)
+            if negated_status:
+                result["size"] = f"not_{size_type}"
+            else:
+                result["size"] = size_type
+            return result # Return immediately if a general size is found
+
+    return result
+
 def parse_request(text: str) -> dict:
     """
     Parses a parking/EV request and returns a dictionary with extracted features.
@@ -8,74 +93,89 @@ def parse_request(text: str) -> dict:
     text_lower = text.lower()
     result = {}
 
-    # Helper function to check if a keyword is negated
-    def is_negated(keyword, text):
-        # Patterns that indicate negation of the keyword
-        negation_patterns = [
-            rf"\bwithout\b.*{keyword}",
-            rf"\bno\b.*{keyword}",
-            rf"\bnot\b.*{keyword}",
-            rf"\bnot for\b.*{keyword}",
-            rf"{keyword}.*\bnot\b",
-            rf"{keyword}.*\bno\b",
-            rf"{keyword}.*\bwithout\b",
-            rf"{keyword}.*\bnot for\b",
-        ]
-        return any(re.search(pattern, text) for pattern in negation_patterns)
+    # ADA detection
+    ada_keywords = ["handicap", "handicapped", "ada", "disabled", "accessible"]
+    if flexible_keyword_match(ada_keywords, text_lower):
+        if is_negated(ada_keywords, text_lower):
+            result["ada"] = False
+        else:
+            result["ada"] = True
 
-    # ADA detection - simple and direct
-    if re.search(r"\b(handicap|handicapped|ada|disabled|accessible)\b", text_lower):
-        result["ada"] = True
+    # EV detection
+    ev_keywords = ["ev", "electric"]
+    charging_keywords = ["charging", "charger"]
 
-    # EV detection with improved negation handling
-    ev_mentioned = re.search(r"\bev\b|\belectric\b", text_lower)
-    if ev_mentioned:
-        # Use the is_negated function for EV as well
-        ev_negated = is_negated(r"(ev|electric)", text_lower)
-        
-        # Don't mark EV if it's about adjacent empty spots
-        adjacent_ev = re.search(r"(empty|between).*(ev|electric)", text_lower)
-        
-        if not ev_negated and not adjacent_ev:
-            result["ev"] = True
+    # Check for explicit EV mentions
+    ev_mentioned_explicitly = flexible_keyword_match(ev_keywords, text_lower)
+
+    # Determine if EV is negated (considering both ev and charging keywords)
+    ev_is_negated = is_negated(ev_keywords, text_lower) or \
+                    is_negated(charging_keywords, text_lower) or \
+                    re.search(r"\bnon-ev\b", text_lower)
+
+    if ev_is_negated:
+        result["ev"] = False
+    elif ev_mentioned_explicitly:
+        result["ev"] = True
 
     # Vehicle size detection
-    if re.search(r"\bcompact\b|\bsmall car\b", text_lower):
-        result["size"] = "compact"
-    elif re.search(r"\bmidsize\b", text_lower):
-        result["size"] = "midsize"
-    elif re.search(r"\bsuv\b", text_lower):
-        result["size"] = "suv"
-    elif re.search(r"\bfull size\b|\bfull\b", text_lower):
-        result["size"] = "full"
-    elif re.search(r"\btruck\b", text_lower):
-        result["size"] = "truck"
+    result.update(parse_vehicle_size(text))
 
     # Connector type detection with negation handling
-    if (re.search(r"\b(dc fast|fast charger|fast charging|dc_fast)\b", text_lower) and 
-        not is_negated(r"(fast charger|fast charging|dc fast)", text_lower)):
-        result["connector"] = "dc_fast"
-    elif (re.search(r"\bccs\b", text_lower) and 
-          not is_negated(r"ccs", text_lower)):
-        result["connector"] = "ccs"
-    elif (re.search(r"\bj1772\b", text_lower) and 
-          not is_negated(r"j1772", text_lower)):
-        result["connector"] = "j1772"
+    dc_fast_keywords = ["dc fast", "fast charger", "fast charging", "dc_fast"]
+    ccs_keywords = ["ccs"]
+    j1772_keywords = ["j1772"]
+
+    if flexible_keyword_match(dc_fast_keywords, text_lower):
+        if is_negated(dc_fast_keywords, text_lower):
+            result["connector"] = "no_dc_fast"
+        else:
+            result["connector"] = "dc_fast"
+    elif flexible_keyword_match(ccs_keywords, text_lower):
+        if is_negated(ccs_keywords, text_lower):
+            result["connector"] = "no_ccs"
+        else:
+            result["connector"] = "ccs"
+    elif flexible_keyword_match(j1772_keywords, text_lower):
+        if is_negated(j1772_keywords, text_lower):
+            result["connector"] = "no_j1772"
+        else:
+            result["connector"] = "j1772"
 
     # Buffered detection
-    if re.search(r"\bbuffered\b|\bbetween two\b", text_lower):
-        result["buffered"] = True
+    buffered_keywords = ["buffered", "between two"]
+    if flexible_keyword_match(buffered_keywords, text_lower):
+        if is_negated(buffered_keywords, text_lower):
+            result["buffered"] = False
+        else:
+            result["buffered"] = True
 
-    # Near detection - more flexible patterns
-    # Check for any "near" mention first, then filter out unwanted cases
-    if re.search(r"\bnear\b|\bclose to\b", text_lower):
-        # Now filter out cases where near shouldn't be true
-        has_far = re.search(r"\bfar\b|\bfar from\b|\bfar away\b", text_lower)
-        near_exit = re.search(r"\bnear.*exit\b", text_lower)
-        near_stadium = re.search(r"\bnear.*stadium\b", text_lower)
-        
-        # If near is mentioned AND it's not about exit/far/stadium, set near=True
-        if not has_far and not near_exit and not near_stadium:
-            result["near"] = True
+    # Near/Far from entrance detection
+    near_keywords = ["near", "close to"]
+    far_keywords = ["far", "far from", "far away"]
+    near_exit_keywords = ["near exit"]
+    entrance_keywords = ["entrance"]
+
+    # Handle 'near exit' preference first, as it's more specific
+    if flexible_keyword_match(near_exit_keywords, text_lower):
+        result["near_exit"] = True
+        # If 'near exit' is mentioned, and 'entrance' is negated, then 'near' should be False
+        if is_negated(entrance_keywords, text_lower):
+            result["near"] = False
+    
+    # Handle general 'near' preference only if 'near_exit' is not set and 'near' is not already set
+    if "near_exit" not in result and "near" not in result:
+        if flexible_keyword_match(near_keywords, text_lower):
+            if is_negated(near_keywords, text_lower):
+                result["near"] = False
+            else:
+                result["near"] = True
+    
+    # Handle 'far from entrance' preference
+    if flexible_keyword_match(far_keywords, text_lower):
+        if is_negated(far_keywords, text_lower):
+            result["far_from_entrance"] = False
+        else:
+            result["far_from_entrance"] = True
 
     return result

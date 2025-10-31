@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session, joinedload
@@ -150,9 +151,8 @@ class RecommendationRequest(BaseModel):
     is_ev: Optional[bool] = Field(None, example=False)
     connector: Optional[str] = Field(None, example="J1772")
     size_class: Optional[int] = Field(None, example=1)
-    size: Optional[str] = Field(None, example="midsize", description="Desired vehicle size (compact, midsize, full, suv, truck)")
     near: Optional[bool] = Field(None, example=False)
-    buffered: Optional[bool] = Field(None, example=False, description="Prefers a buffered spot (between two empty spots)")
+    buffered: Optional[bool] = Field(False, example=False, description="Prefers a buffered spot (between two empty spots)")
 
 @app.post("/recommend")
 def recommend(
@@ -174,11 +174,6 @@ def recommend(
 
     # 2. Prepare preferences for the recommender
     preferences = request.dict(exclude_unset=True)
-    
-    # Map size string to size_class integer
-    size_map = {"compact": 0, "midsize": 1, "full": 2, "suv": 3, "truck": 4}
-    if "size" in preferences and preferences["size"] in size_map:
-        preferences["size_class"] = size_map[preferences["size"]]
 
     # 2. Get recommendations
     recommendations = recommender.recommend_stalls(
@@ -212,3 +207,21 @@ def chat_stub(query: dict):
     return {"query": query, "response": "Closest EV midsize between two empty spots is A-27."}
 
 app.include_router(chat_router)
+
+@app.get("/housekeeping/download")
+def download_artifact(path: str):
+    """
+    Downloads a specified artifact file from the server.
+    For security, this endpoint only allows downloading files from a predefined base directory.
+    """
+    # Security: Prevent directory traversal attacks
+    base_dir = os.path.abspath(".")  # Or a more specific, safe directory
+    file_path = os.path.abspath(os.path.join(base_dir, path))
+
+    if not file_path.startswith(base_dir):
+        raise HTTPException(status_code=403, detail="Forbidden: Access is denied.")
+
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="File not found.")
+
+    return FileResponse(file_path)
