@@ -53,11 +53,23 @@ def _apply_hard_filters(
             if s.features.connectors and preferences["connector"] in s.features.connectors
         ]
 
-    if preferences.get("size_class") is not None:
-        filtered_stalls = [
-            s for s in filtered_stalls
-            if s.features.width_class >= preferences["size_class"]
-        ]
+    # --- THIS BLOCK IS THE ONLY CHANGE ---
+    pref_size = preferences.get("size_class")
+
+    if pref_size is not None:
+        # Special rule: If user wants "compact", only show "compact".
+        if pref_size == 0:  # 0 is "compact"
+            filtered_stalls = [
+                s for s in filtered_stalls
+                if s.features.width_class == 0
+            ]
+        # Standard rule: Vehicle must fit in the stall.
+        else:
+            filtered_stalls = [
+                s for s in filtered_stalls
+                if s.features.width_class >= pref_size
+            ]
+    # --- END OF CHANGE ---
 
     return filtered_stalls
 
@@ -142,4 +154,3 @@ def _format_recommendations(
             )
         )
     return recommendations
-
