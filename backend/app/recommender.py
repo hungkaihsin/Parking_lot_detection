@@ -67,7 +67,7 @@ def _apply_hard_filters(
         else:
             filtered_stalls = [
                 s for s in filtered_stalls
-                if s.features.width_class >= pref_size
+                if s.features.width_class >= pref_size and s.features.width_class <= pref_size + 1
             ]
     # --- END OF CHANGE ---
 
