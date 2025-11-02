@@ -14,7 +14,7 @@ import os
 # 1. Load the trained model
 # NOTE: This assumes the model file is present at the specified path inside the container.
 MODEL_PATH = "/app/models/size_classifier/car_classifier_best.pt"
-NUM_CLASSES = 3 # compact, midsize, full
+NUM_CLASSES = 5 # compact, midsize, full, suv, truck
 
 # Check if the model file exists before loading
 if os.path.exists(MODEL_PATH):
@@ -40,9 +40,9 @@ if os.path.exists(MODEL_PATH):
 
     # 3. Define the mapping from index to label
     # This is based on the order of labels encountered during training.
-    # We assume: 0: compact, 1: midsize, 2: full
+    # We assume: 0: compact, 1: midsize, 2: full, 3: suv, 4: truck
     # A more robust solution would save this mapping alongside the model.
-    IDX_TO_LABEL = {0: 'compact', 1: 'midsize', 2: 'full'}
+    IDX_TO_LABEL = {0: 'compact', 1: 'midsize', 2: 'full', 3: 'suv', 4: 'truck'}
 
 else:
     size_classifier = None

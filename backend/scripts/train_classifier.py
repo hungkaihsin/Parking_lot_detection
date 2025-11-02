@@ -97,19 +97,41 @@ def main():
     parser.add_argument("--batch_size", type=int, default=16, help="Training batch size.")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate.")
     parser.add_argument("--num-workers", type=int, default=2, help="Number of workers for the dataloader.")
+    parser.add_argument("--model-name", type=str, default="efficientnet_b0", help="Model name to use (e.g., efficientnet_b0, efficientnet_b1, efficientnet_b2).")
+    parser.add_argument("--use-advanced-augmentations", action="store_true", help="Use advanced data augmentations.")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
     # Data transformations
-    data_transforms = {
-        'train': transforms.Compose([
+    print("Applying data augmentation...")
+    if args.use_advanced_augmentations:
+        print("Using advanced data augmentations.")
+        train_transforms = transforms.Compose([
+            transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(20),
+            transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.2),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=10),
+            transforms.RandomPerspective(distortion_scale=0.2, p=0.5),
+            transforms.ToTensor(),
+            transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+    else:
+        print("Using basic data augmentations.")
+        train_transforms = transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(15),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ]),
+        ])
+
+    data_transforms = {
+        'train': train_transforms,
         'val': transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -130,16 +152,40 @@ def main():
     print(f"Number of classes: {num_classes}")
 
     # Load pre-trained model and modify the final layer
-    print("Loading pre-trained EfficientNet-B0 model...")
-    model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+    print(f"Loading pre-trained {args.model_name} model...")
+    if args.model_name == 'efficientnet_b1':
+        model = models.efficientnet_b1(weights=models.EfficientNet_B1_Weights.DEFAULT)
+    elif args.model_name == 'efficientnet_b2':
+        model = models.efficientnet_b2(weights=models.EfficientNet_B2_Weights.DEFAULT)
+    elif args.model_name == 'efficientnet_b3':
+        model = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.DEFAULT)
+    else:
+        model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+    
     num_ftrs = model.classifier[1].in_features
     model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
     model = model.to(device)
 
+    # Calculate class weights for handling imbalance
+    print("Calculating class weights...")
+    class_counts = train_dataset.dataframe['label'].value_counts()
+    
+    # Ensure the order of weights matches the order of class indices
+    weights = [0.0] * len(train_dataset.idx_to_label)
+    for label, count in class_counts.items():
+        idx = train_dataset.label_to_idx[label]
+        weights[idx] = 1.0 / count
+    
+    class_weights = torch.tensor(weights, dtype=torch.float).to(device)
+    class_weights = class_weights / class_weights.sum() # Normalize
+
     # Loss function and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    print("Applying weight decay to optimizer...")
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, factor=0.1)
+    print(f"Using weighted loss with weights: {class_weights.cpu().numpy()}")
 
     # Training loop
     best_acc = 0.0
@@ -150,12 +196,19 @@ def main():
         print(f"\nEpoch {epoch+1}/{args.epochs}")
         print("-" * 10)
         
+        # Log current learning rate
+        for param_group in optimizer.param_groups:
+            print(f"Current learning rate: {param_group['lr']:.6f}")
+
         train_loss, train_acc = train_model(model, train_loader, criterion, optimizer, device)
         print(f"Training Loss: {train_loss:.4f}, Training Acc: {train_acc:.4f}")
         
         val_loss, val_acc = validate_model(model, valid_loader, criterion, device)
         print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_acc:.4f}")
         
+        # Step the scheduler
+        scheduler.step(val_loss)
+
         # Save the best model
         if val_acc > best_acc:
             best_acc = val_acc
