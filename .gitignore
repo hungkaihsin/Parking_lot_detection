@@ -36,7 +36,6 @@ runs/detect/
 runs/train/
 runs/val/
 *.csv
-!data/processed/*.csv
 
 # Temporary files
 *.tmp
