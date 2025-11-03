@@ -2,6 +2,8 @@ from typing import List, Dict, Any
 from . import models
 from .schemas import Recommendation, StallFeatureBase
 
+size_map = {"compact": 0, "midsize": 1, "full": 2, "suv": 3, "truck": 4}
+
 def recommend_stalls(
     available_stalls: List[models.Stall],
     preferences: Dict[str, Any],
@@ -21,6 +23,8 @@ def recommend_stalls(
         A ranked and paginated list of recommended stalls with reasons.
     """
     # 1. Hard Filters
+    if "size" in preferences and preferences["size"] in size_map:
+        preferences["size_class"] = size_map[preferences["size"]]
     filtered_stalls = _apply_hard_filters(available_stalls, preferences)
 
     # 2. Soft Preferences (Ranking)
@@ -48,12 +52,24 @@ def _apply_hard_filters(
             s for s in filtered_stalls
             if s.features.connectors and preferences["connector"] in s.features.connectors
         ]
-    
-    if preferences.get("size_class"):
-        filtered_stalls = [
-            s for s in filtered_stalls
-            if s.features.width_class >= preferences["size_class"]
-        ]
+
+    # --- THIS BLOCK IS THE ONLY CHANGE ---
+    pref_size = preferences.get("size_class")
+
+    if pref_size is not None:
+        # Special rule: If user wants "compact", only show "compact".
+        if pref_size == 0:  # 0 is "compact"
+            filtered_stalls = [
+                s for s in filtered_stalls
+                if s.features.width_class == 0
+            ]
+        # Standard rule: Vehicle must fit in the stall.
+        else:
+            filtered_stalls = [
+                s for s in filtered_stalls
+                if s.features.width_class >= pref_size and s.features.width_class <= pref_size + 1
+            ]
+    # --- END OF CHANGE ---
 
     return filtered_stalls
 
@@ -80,9 +96,12 @@ def _apply_soft_preferences(
                 reasons.append("Buffered spot")
 
         # 3. Size match
-        if preferences.get("size_class"):
+        if preferences.get("size_class") is not None:
             size_diff = stall.features.width_class - preferences["size_class"]
-            if size_diff >= 0:
+            if size_diff == 0:
+                score += 1.0 # Exact match
+                reasons.append("Exact size match")
+            elif size_diff > 0:
                 score += 1 / (size_diff + 1) # Reward smaller size differences
                 reasons.append(f"Size match bonus: +{1 / (size_diff + 1):.2f}")
 
@@ -100,8 +119,23 @@ def _format_recommendations(
     Formats the ranked stalls into the final output using the Recommendation schema.
     """
     recommendations = []
+    reversed_size_map = {v: k for k, v in size_map.items()}
+
     for item in ranked_stalls:
         stall = item["stall"]
+        badges = []
+        if stall.features.is_ev:
+            badges.append("EV")
+        if stall.features.is_ada:
+            badges.append("ADA")
+        if all(not n.is_occupied for n in stall.neighbors):
+            badges.append("Buffered")
+        
+        size_name = "Unknown"
+        if stall.features.width_class is not None:
+            size_name = reversed_size_map.get(stall.features.width_class, "Unknown")
+            badges.append(size_name)
+
         recommendations.append(
             Recommendation(
                 stall_id=stall.id,
@@ -114,8 +148,9 @@ def _format_recommendations(
                     connectors=stall.features.connectors,
                     width_class=stall.features.width_class,
                     dist_to_entrance=stall.features.dist_to_entrance,
-                )
+                    size=size_name
+                ),
+                badges=badges
             )
         )
     return recommendations
-

@@ -35,8 +35,12 @@ def load_stalls_from_geojson(db, geojson_path, lot_id):
     stall_ids_in_lot = db.query(Stall.id).filter(Stall.lot_id == lot_id).subquery()
 
     # Delete dependent entries first to avoid foreign key violations
-    db.query(SpotStatus).filter(SpotStatus.spot_id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
-    db.execute(text(f"DELETE FROM {stall_neighbors.name}")) # This was in the original code
+    from sqlalchemy import inspect
+    inspector = inspect(db.bind)
+    if inspector.has_table("spot_status"):
+        db.query(SpotStatus).filter(SpotStatus.spot_id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
+    if inspector.has_table("stall_neighbors"):
+        db.execute(text(f"DELETE FROM {stall_neighbors.name}")) # This was in the original code
     db.query(StallFeature).filter(StallFeature.id.in_(stall_ids_in_lot)).delete(synchronize_session=False)
     
     # Now, it's safe to delete the stalls themselves

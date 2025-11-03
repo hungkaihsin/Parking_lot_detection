@@ -7,6 +7,7 @@ class StallFeatureBase(BaseModel):
     connectors: Optional[str]
     width_class: int
     dist_to_entrance: float
+    size: Optional[str]  # Add the size field
 
     class Config:
         orm_mode = True
@@ -29,6 +30,7 @@ class Recommendation(BaseModel):
     score: float
     reasons: List[str]
     features: StallFeatureBase
+    badges: List[str]  # Add the badges field
 
     class Config:
         orm_mode = True
