@@ -1,13 +1,19 @@
 # app/db.py
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, joinedload
+import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./local.db")
 
 Base = declarative_base()
 _engine = None
 _SessionLocal = None
+
+# In-memory cache for the stall catalog
+_stall_catalog_cache = None
+_cache_expiry = None
+CACHE_DURATION = datetime.timedelta(minutes=5)
 
 def get_engine():
     global _engine
@@ -27,3 +33,23 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def get_cached_stall_catalog(db_session):
+    """
+    Returns the stall catalog from cache if available and not expired,
+    otherwise fetches it from the database and caches it.
+    """
+    from . import models # Import moved here
+    global _stall_catalog_cache, _cache_expiry
+    now = datetime.datetime.utcnow()
+
+    if _stall_catalog_cache is None or _cache_expiry is None or now > _cache_expiry:
+        # Cache is invalid, fetch from DB
+        _stall_catalog_cache = (
+            db_session.query(models.Stall)
+            .options(joinedload(models.Stall.features))
+            .all()
+        )
+        _cache_expiry = now + CACHE_DURATION
+    
+    return _stall_catalog_cache

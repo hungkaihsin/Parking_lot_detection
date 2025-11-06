@@ -83,27 +83,33 @@ def _apply_soft_preferences(
         score = 0
         reasons = []
 
-        # 1. Distance to entrance (lower is better)
-        if not preferences.get("near"):
-            score -= stall.features.dist_to_entrance
-            reasons.append(f"Distance: {stall.features.dist_to_entrance:.2f}m")
+        # 1. Distance to entrance
+        if stall.features and stall.features.dist_to_entrance is not None:
+            if preferences.get("near"):
+                # Higher score for smaller distance
+                score += (100 - stall.features.dist_to_entrance) / 100
+                reasons.append(f"Only {stall.features.dist_to_entrance:.1f}m from entrance")
+            else:
+                # Lower score for larger distance (default behavior)
+                score -= stall.features.dist_to_entrance
+                reasons.append(f"Distance: {stall.features.dist_to_entrance:.1f}m")
 
         # 2. Buffered (between two empty spots)
         if preferences.get("buffered"):
             is_buffered = all(not n.is_occupied for n in stall.neighbors)
             if is_buffered:
                 score += 0.5  # Add a bonus for buffered stalls
-                reasons.append("Buffered spot")
+                reasons.append("Buffered (empty spots on both sides)")
 
         # 3. Size match
         if preferences.get("size_class") is not None:
             size_diff = stall.features.width_class - preferences["size_class"]
             if size_diff == 0:
                 score += 1.0 # Exact match
-                reasons.append("Exact size match")
+                reasons.append("Perfect fit for your vehicle")
             elif size_diff > 0:
                 score += 1 / (size_diff + 1) # Reward smaller size differences
-                reasons.append(f"Size match bonus: +{1 / (size_diff + 1):.2f}")
+                reasons.append("Good fit for your vehicle")
 
 
         ranked_stalls.append({"stall": stall, "score": score, "reasons": reasons})
