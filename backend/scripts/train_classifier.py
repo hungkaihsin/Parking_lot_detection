@@ -87,6 +87,12 @@ def validate_model(model, valid_loader, criterion, device):
     
     return epoch_loss, epoch_acc
 
+def warmup_lr_scheduler(optimizer, epoch, warmup_epochs, base_lr):
+    if epoch < warmup_epochs:
+        lr = base_lr * (epoch + 1) / warmup_epochs
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+
 # 3. Main Execution Block
 def main():
     parser = argparse.ArgumentParser(description="Train a car classification model.")
@@ -95,10 +101,11 @@ def main():
     parser.add_argument("--model_dir", type=str, default="/app/models/", help="Directory to save the trained model.")
     parser.add_argument("--epochs", type=int, default=25, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=16, help="Training batch size.")
-    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate.")
+    parser.add_argument("--lr", type=float, default=0.0001, help="Learning rate.")
     parser.add_argument("--num-workers", type=int, default=2, help="Number of workers for the dataloader.")
     parser.add_argument("--model-name", type=str, default="efficientnet_b0", help="Model name to use (e.g., efficientnet_b0, efficientnet_b1, efficientnet_b2).")
     parser.add_argument("--use-advanced-augmentations", action="store_true", help="Use advanced data augmentations.")
+    parser.add_argument("--warmup-epochs", type=int, default=3, help="Number of epochs for learning rate warmup.")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -183,8 +190,8 @@ def main():
     # Loss function and optimizer
     print("Applying weight decay to optimizer...")
     criterion = nn.CrossEntropyLoss(weight=class_weights)
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, factor=0.1)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs - args.warmup_epochs if args.epochs > args.warmup_epochs else args.epochs)
     print(f"Using weighted loss with weights: {class_weights.cpu().numpy()}")
 
     # Training loop
@@ -196,6 +203,9 @@ def main():
         print(f"\nEpoch {epoch+1}/{args.epochs}")
         print("-" * 10)
         
+        if epoch < args.warmup_epochs:
+            warmup_lr_scheduler(optimizer, epoch, args.warmup_epochs, args.lr)
+
         # Log current learning rate
         for param_group in optimizer.param_groups:
             print(f"Current learning rate: {param_group['lr']:.6f}")
@@ -207,7 +217,8 @@ def main():
         print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_acc:.4f}")
         
         # Step the scheduler
-        scheduler.step(val_loss)
+        if epoch >= args.warmup_epochs:
+            scheduler.step()
 
         # Save the best model
         if val_acc > best_acc:
