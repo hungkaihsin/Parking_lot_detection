@@ -41,7 +41,7 @@ def _apply_hard_filters(
     """Applies hard filters to the list of stalls."""
     filtered_stalls = stalls
 
-    if preferences.get("is_ada"):
+    if preferences.get("ada"):
         filtered_stalls = [s for s in filtered_stalls if s.features.is_ada]
 
     if "size" in preferences:
@@ -60,8 +60,10 @@ def _apply_hard_filters(
                     ]
 
 
-    if preferences.get("is_ev"):
+    if preferences.get("ev"):
         filtered_stalls = [s for s in filtered_stalls if s.features.is_ev]
+    elif preferences.get("ev") is False:
+        filtered_stalls = [s for s in filtered_stalls if not s.features.is_ev]
 
     if "connector" in preferences:
         connector_prefs = preferences["connector"]
