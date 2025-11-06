@@ -11,11 +11,11 @@ import logging
 import datetime
 import os
 
-from .db import get_db
+from .db import get_db, get_cached_stall_catalog
 from . import models
 from .detection import get_occupied_stalls
 from . import recommender
-from .chat import router as chat_router
+from .nlp.nl_parse import parse_request
 
 # --- Logging Setup ---
 # Create logs directory if it doesn't exist
@@ -147,6 +147,7 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     }
 
 class RecommendationRequest(BaseModel):
+    query: Optional[str] = Field(None, example="I need a spot for my truck")
     is_ada: Optional[bool] = Field(None, example=False)
     is_ev: Optional[bool] = Field(None, example=False)
     connector: Optional[str] = Field(None, example="J1772")
@@ -160,20 +161,20 @@ def recommend(
     db: Session = Depends(get_db)
 ):
     """
-    Recommends parking stalls based on structured user preferences.
+    Recommends parking stalls based on structured user preferences or a natural language query.
     """
     start_time = datetime.datetime.now()
 
-    # 1. Get all stalls from the database
-    # In a real application, you would filter for available stalls here
-    available_stalls = (
-        db.query(models.Stall)
-        .options(joinedload(models.Stall.features))
-        .all()
-    )
+    if request.query:
+        preferences = parse_request(request.query)
+    else:
+        preferences = request.dict(exclude_unset=True)
 
-    # 2. Prepare preferences for the recommender
-    preferences = request.dict(exclude_unset=True)
+    # 1. Get all stalls from the cache
+    cached_stalls = get_cached_stall_catalog(db)
+    
+    # Re-attach cached objects to the current session to prevent DetachedInstanceError
+    available_stalls = [db.merge(s) for s in cached_stalls]
 
     # 2. Get recommendations
     recommendations = recommender.recommend_stalls(
@@ -206,7 +207,6 @@ def recommend(
 def chat_stub(query: dict):
     return {"query": query, "response": "Closest EV midsize between two empty spots is A-27."}
 
-app.include_router(chat_router)
 
 @app.get("/housekeeping/download")
 def download_artifact(path: str):
