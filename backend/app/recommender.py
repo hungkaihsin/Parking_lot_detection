@@ -23,7 +23,7 @@ def recommend_stalls(
         A ranked and paginated list of recommended stalls with reasons.
     """
     # 1. Hard Filters
-    if "size" in preferences and preferences["size"] in size_map:
+    if "size" in preferences and isinstance(preferences["size"], str) and preferences["size"] in size_map:
         preferences["size_class"] = size_map[preferences["size"]]
     filtered_stalls = _apply_hard_filters(available_stalls, preferences)
 
@@ -44,14 +44,43 @@ def _apply_hard_filters(
     if preferences.get("is_ada"):
         filtered_stalls = [s for s in filtered_stalls if s.features.is_ada]
 
+    if "size" in preferences:
+        size_prefs = preferences["size"]
+        if not isinstance(size_prefs, list):
+            size_prefs = [size_prefs]
+
+        for size_pref in size_prefs:
+            if size_pref.startswith("not_"):
+                size_to_exclude = size_pref.split("not_")[1]
+                if size_to_exclude in size_map:
+                    size_class_to_exclude = size_map[size_to_exclude]
+                    filtered_stalls = [
+                        s for s in filtered_stalls
+                        if s.features.width_class != size_class_to_exclude
+                    ]
+
+
     if preferences.get("is_ev"):
         filtered_stalls = [s for s in filtered_stalls if s.features.is_ev]
 
-    if preferences.get("connector"):
-        filtered_stalls = [
-            s for s in filtered_stalls
-            if s.features.connectors and preferences["connector"] in s.features.connectors
-        ]
+    if "connector" in preferences:
+        connector_prefs = preferences["connector"]
+        if not isinstance(connector_prefs, list):
+            connector_prefs = [connector_prefs]
+
+        for conn_pref in connector_prefs:
+            if conn_pref.startswith("no_"):
+                conn_to_exclude = conn_pref.split("no_")[1]
+                filtered_stalls = [
+                    s for s in filtered_stalls
+                    if not s.features.connectors or conn_to_exclude not in s.features.connectors
+                ]
+            else:
+                filtered_stalls = [
+                    s for s in filtered_stalls
+                    if s.features.connectors and conn_pref in s.features.connectors
+                ]
+
 
     # --- THIS BLOCK IS THE ONLY CHANGE ---
     pref_size = preferences.get("size_class")
