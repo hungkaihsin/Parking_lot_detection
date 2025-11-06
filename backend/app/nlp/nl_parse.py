@@ -45,12 +45,13 @@ def parse_vehicle_size(text: str) -> dict:
     """
     text_lower = text.lower()
     result = {}
+    sizes = []
 
     size_keywords = {
         "compact": ["compacts?", "small cars?"],
         "midsize": ["midsizes?"],
         "suv": ["suvs?"],
-        "full": ["full sizes?", "fulls?", "large cars?"],
+        "full": ["full sizes?", "fulls?", "large cars?", "big", "big car", "big cars"],
         "truck": ["trucks?"]
     }
 
@@ -69,20 +70,25 @@ def parse_vehicle_size(text: str) -> dict:
                    (end == len(text_lower) or not text_lower[end].isalnum()):
                     
                     if is_negated([f"{size_type} only", f"only {size_type}"], text_lower):
-                        result["size"] = f"not_{size_type}_only"
+                        sizes.append(f"not_{size_type}_only")
                     else:
-                        result["size"] = f"{size_type}_only"
-                    return result # Return immediately if "only" is found
+                        sizes.append(f"{size_type}_only")
+
+    if sizes:
+        result["size"] = sizes if len(sizes) > 1 else sizes[0]
+        return result
 
     # Then check for general size mentions
     for size_type, patterns in size_keywords.items():
         if any(re.search(rf"\b{p}\b", text_lower) for p in patterns):
             negated_status = is_negated(patterns, text_lower)
             if negated_status:
-                result["size"] = f"not_{size_type}"
+                sizes.append(f"not_{size_type}")
             else:
-                result["size"] = size_type
-            return result # Return immediately if a general size is found
+                sizes.append(size_type)
+
+    if sizes:
+        result["size"] = sizes if len(sizes) > 1 else sizes[0]
 
     return result
 
@@ -105,15 +111,11 @@ def parse_request(text: str) -> dict:
     ev_keywords = ["ev", "electric"]
     charging_keywords = ["charging", "charger"]
 
-    # Check for explicit EV mentions
     ev_mentioned_explicitly = flexible_keyword_match(ev_keywords, text_lower)
+    ev_negated_explicitly = is_negated(ev_keywords, text_lower) or re.search(r"\bnon-ev\b", text_lower)
+    explicit_no_charging = re.search(r"\bno charging\b", text_lower) or re.search(r"\bwithout charging\b", text_lower) or re.search(r"\bno charger\b", text_lower) or re.search(r"\bno fast charging needed\b", text_lower) or re.search(r"\bwithout charger\b", text_lower) or re.search(r"\bno dc fast charging\b", text_lower) or re.search(r"\bdoes not have a dc fast charger\b", text_lower) or re.search(r"\bwithout any charging options\b", text_lower)
 
-    # Determine if EV is negated (considering both ev and charging keywords)
-    ev_is_negated = is_negated(ev_keywords, text_lower) or \
-                    is_negated(charging_keywords, text_lower) or \
-                    re.search(r"\bnon-ev\b", text_lower)
-
-    if ev_is_negated:
+    if ev_negated_explicitly or explicit_no_charging:
         result["ev"] = False
     elif ev_mentioned_explicitly:
         result["ev"] = True
@@ -122,25 +124,29 @@ def parse_request(text: str) -> dict:
     result.update(parse_vehicle_size(text))
 
     # Connector type detection with negation handling
+    connectors = []
     dc_fast_keywords = ["dc fast", "fast charger", "fast charging", "dc_fast"]
     ccs_keywords = ["ccs"]
     j1772_keywords = ["j1772"]
 
     if flexible_keyword_match(dc_fast_keywords, text_lower):
         if is_negated(dc_fast_keywords, text_lower):
-            result["connector"] = "no_dc_fast"
+            connectors.append("no_dc_fast")
         else:
-            result["connector"] = "dc_fast"
-    elif flexible_keyword_match(ccs_keywords, text_lower):
+            connectors.append("dc_fast")
+    if flexible_keyword_match(ccs_keywords, text_lower):
         if is_negated(ccs_keywords, text_lower):
-            result["connector"] = "no_ccs"
+            connectors.append("no_ccs")
         else:
-            result["connector"] = "ccs"
-    elif flexible_keyword_match(j1772_keywords, text_lower):
+            connectors.append("ccs")
+    if flexible_keyword_match(j1772_keywords, text_lower):
         if is_negated(j1772_keywords, text_lower):
-            result["connector"] = "no_j1772"
+            connectors.append("no_j1772")
         else:
-            result["connector"] = "j1772"
+            connectors.append("j1772")
+
+    if connectors:
+        result["connector"] = connectors if len(connectors) > 1 else connectors[0]
 
     # Buffered detection
     buffered_keywords = ["buffered", "between two"]
