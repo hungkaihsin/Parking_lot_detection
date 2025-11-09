@@ -75,12 +75,12 @@ def _apply_hard_filters(
                 conn_to_exclude = conn_pref.split("no_")[1]
                 filtered_stalls = [
                     s for s in filtered_stalls
-                    if not s.features.connectors or conn_to_exclude not in s.features.connectors
+                    if not s.features.connectors or conn_to_exclude not in s.features.connectors.lower()
                 ]
             else:
                 filtered_stalls = [
                     s for s in filtered_stalls
-                    if s.features.connectors and conn_pref in s.features.connectors
+                    if s.features.connectors and conn_pref in s.features.connectors.lower()
                 ]
 
 
