@@ -25,7 +25,8 @@
 {"text": "empty ev spots nearby", "expected": {"ev": true}}
 {"text": "spots with no ev charging", "expected": {"ev": false}}
 {"text": "not an electric vehicle", "expected": {"ev": false}}
-{"text": "parking without fast charger", "expected": {"connector": "no_dc_fast", "ev": false}}
+{"text": "parking without fast charger", "expected": {"connector": "no_dc_fast"}}
+{"text": "I don't have an EV, and I need a spot without a fast charger", "expected": {"ev": false, "connector": "no_dc_fast"}}
 {"text": "regular truck spot no ev", "expected": {"size": "truck", "ev": false}}
 {"text": "midsize without charging", "expected": {"size": "midsize", "ev": false}}
 {"text": "compact car not electric", "expected": {"size": "compact", "ev": false}}
@@ -81,3 +82,38 @@
 {"text": "I drive an SUV", "expected": {"size": "suv"}}
 {"text": "I'm looking for a spot for my small car", "expected": {"size": "compact"}}
 {"text": "I have a large car", "expected": {"size": "full"}}
+{"text": "I need a spot that is not for compact cars", "expected": {"size": "not_compact"}}
+{"text": "I want a spot that is not for midsize cars", "expected": {"size": "not_midsize"}}
+{"text": "Give me a spot that is not for full size cars", "expected": {"size": "not_full"}}
+{"text": "I need a spot that is not for SUVs", "expected": {"size": "not_suv"}}
+{"text": "I want a spot that is not for trucks", "expected": {"size": "not_truck"}}
+{"text": "I need a spot that is not buffered", "expected": {"buffered": false}}
+{"text": "I want a spot that is not near the entrance", "expected": {"near": false}}
+{"text": "Give me a spot that is not far from the entrance", "expected": {"far_from_entrance": false}}
+{"text": "I need a spot that is not for an EV", "expected": {"ev": false}}
+{"text": "I want a spot that does not have a J1772 connector", "expected": {"connector": "no_j1772"}}
+{"text": "Give me a spot that does not have a CCS connector", "expected": {"connector": "no_ccs"}}
+{"text": "I need a spot that does not have a DC fast charger", "expected": {"connector": "no_dc_fast", "ev": false}}
+{"text": "I want a spot that is not ADA accessible", "expected": {"ada": false}}
+{"text": "Give me a spot that is not for a compact car and not for an EV", "expected": {"size": "not_compact", "ev": false}}
+{"text": "I need a spot that is not for a midsize car and not near the entrance", "expected": {"size": "not_midsize", "near": false}}
+{"text": "I want a spot that is not for a full size car and not far from the entrance", "expected": {"size": "not_full", "far_from_entrance": false}}
+{"text": "Give me a spot that is not for an SUV and not buffered", "expected": {"size": "not_suv", "buffered": false}}
+{"text": "I need a spot that is not for a truck and does not have a J1772 connector", "expected": {"size": "not_truck", "connector": "no_j1772"}}
+{"text": "I want a spot that is not for an EV and does not have a CCS connector", "expected": {"ev": false, "connector": "no_ccs"}}
+{"text": "Give me a spot that is not ADA accessible and does not have a DC fast charger", "expected": {"ada": false, "connector": "no_dc_fast", "ev": false}}
+{"text": "I need a spot for my truck, but not a buffered one", "expected": {"size": "truck", "buffered": false}}
+{"text": "a spot that is not for a small car", "expected": {"size": "not_compact"}}
+{"text": "I'm looking for a spot that is not for a big car", "expected": {"size": "not_full"}}
+{"text": "I need a spot that is not for a truck, and not for an SUV", "expected": {"size": ["not_truck", "not_suv"]}}
+{"text": "a spot without any charging options", "expected": {"ev": false}}
+{"text": "I don't need a fast charger, but I need a J1772", "expected": {"connector": ["no_dc_fast", "j1772"]}}
+{"text": "a spot that is not near the entrance, but not too far either", "expected": {"near": false, "far_from_entrance": false}}
+{"text": "I need a spot for my EV, but not a compact one", "expected": {"ev": true, "size": "not_compact"}}
+{"text": "a spot that is not for a truck and not for an EV", "expected": {"size": "not_truck", "ev": false}}
+{"text": "I need a spot that is not buffered and not near the entrance", "expected": {"buffered": false, "near": false}}
+{"text": "a spot that is not for a midsize car and not for an EV", "expected": {"size": "not_midsize", "ev": false}}
+{"text": "I need a spot that is not for a full size car and not buffered", "expected": {"size": "not_full", "buffered": false}}
+{"text": "a spot that is not for an SUV and not near the entrance", "expected": {"size": "not_suv", "near": false}}
+{"text": "I need a spot that is not for a truck and does not have a CCS connector", "expected": {"size": "not_truck", "connector": "no_ccs"}}
+{"text": "a spot that is not for an EV and does not have a J1772 connector", "expected": {"ev": false, "connector": "no_j1772"}}
