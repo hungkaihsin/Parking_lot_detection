@@ -10,9 +10,11 @@ import torch
 import logging
 import datetime
 import os
+import subprocess
 
 from .db import get_db, get_cached_stall_catalog
 from . import models
+from . import config
 from .detection import get_occupied_stalls
 from . import recommender
 from .nlp.nl_parse import parse_request
@@ -36,37 +38,68 @@ app_logger.setLevel(logging.INFO)
 load_dotenv()
 app = FastAPI(title="Parking Lot Recommender API")
 
-# Load YOLO model at startup
-try:
-    model = YOLO("models/parking_lot.pt")  # path to your YOLO weights
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_loaded = True
-except Exception as e:
-    model = None
-    device = "unavailable"
-    model_loaded = False
+# --- Globals ---
+model = None
+model_loaded = False
+device = "unavailable"
+
+def get_build_sha():
+    """Returns the short git commit hash from the environment variable."""
+    return os.getenv("GIT_SHA", "unknown")
+
+# --- Application Lifecycle ---
+@app.on_event("startup")
+def startup_event():
+    """
+    Actions to be performed on application startup.
+    - Load the appropriate YOLO model based on the profile.
+    """
+    global model, model_loaded, device
+    
+    if config.PROFILE == "day":
+        model_path = "models/parking_lot.pt"
+    elif config.PROFILE == "night":
+        model_path = "models/parking_lot_night.pt"
+    else:
+        app_logger.warning(f"Invalid PROFILE '{config.PROFILE}'. Model not loaded.")
+        return
+
+    if not os.path.exists(model_path):
+        app_logger.warning(f"Model file not found at {model_path}. Model not loaded.")
+        return
+
+    try:
+        model = YOLO(model_path)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model.to(device)
+        model_loaded = True
+        app_logger.info(f"Successfully loaded model for '{config.PROFILE}' profile on '{device}'.")
+    except Exception as e:
+        app_logger.error(f"Failed to load model for profile '{config.PROFILE}': {e}")
 
 
-
-# Endpoints
+# --- Endpoints ---
 @app.get("/healthz")
 def health(db: Session = Depends(get_db)):
     db_status = "ok"
     try:
+        # Check if the database connection is responsive
         db.execute(text("SELECT 1"))
     except Exception as e:
         db_status = f"error: {e}"
+
     return {
         "status": "ok" if db_status == "ok" and model_loaded else "degraded",
-        "db": db_status,
+        "db_status": db_status,
         "model_loaded": model_loaded,
-        "device": device,
+        "profile": config.PROFILE,
+        "build_sha": get_build_sha(),
     }
 
 @app.post("/detect/vehicle")
 def detect_vehicle_stub():
     if not model_loaded:
-        return {"error": "model not loaded"}
+        raise HTTPException(status_code=503, detail="Model not loaded")
         
     return {
         "detections": [
