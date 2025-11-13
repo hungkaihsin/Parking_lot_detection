@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['empty', 'occupied']
+
+roboflow:
+  workspace: smoking-detection-2debl
+  project: parking-lot-j4ojc-dehsm
+  version: 10
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/smoking-detection-2debl/parking-lot-j4ojc-dehsm/dataset/10
