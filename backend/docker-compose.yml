@@ -26,6 +26,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - GIT_SHA=${GIT_SHA}
     shm_size: '2gb'
     restart: unless-stopped
     deploy:
@@ -39,7 +41,8 @@ services:
         condition: service_healthy
     working_dir: /app
     environment:
-      PYTHONPATH: /app
+      - PYTHONPATH=/app
+      - GIT_SHA=${GIT_SHA}
     ports: ["8000:8000"]
     healthcheck:
       test: ["CMD", "sh", "-lc", "python - <<'PY'\nimport requests; requests.get('http://localhost:8000/openapi.json', timeout=2)\nPY"]
