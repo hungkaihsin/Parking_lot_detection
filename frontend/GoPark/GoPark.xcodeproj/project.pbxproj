@@ -65,6 +65,8 @@
 			);
 			name = GoPark;
 			packageProductDependencies = (
+				A3F0BE342EC308BA001088CE /* FirebaseAnalytics */,
+				A3F0BE352EC308BA001088CE /* FirebaseAuth */,
 			);
 			productName = GoPark;
 			productReference = A3F0BE262EC308B8001088CE /* GoPark.app */;
@@ -94,6 +96,9 @@
 			);
 			mainGroup = A3F0BE1D2EC308B8001088CE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A3F0BE362EC308BA001088CE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A3F0BE272EC308B8001088CE /* Products */;
 			projectDirPath = "";
@@ -332,6 +337,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A3F0BE362EC308BA001088CE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A3F0BE342EC308BA001088CE /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A3F0BE362EC308BA001088CE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		A3F0BE352EC308BA001088CE /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A3F0BE362EC308BA001088CE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A3F0BE1E2EC308B8001088CE /* Project object */;
 }

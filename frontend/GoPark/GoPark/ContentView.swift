@@ -8,17 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var showRegistration = false
-    @State private var isLoggedIn = false
+    @StateObject private var authManager = AuthManager.shared
 
     var body: some View {
-        if isLoggedIn {
-            MainMapView(isLoggedIn: $isLoggedIn)
-        } else {
-            if showRegistration {
-                RegistrationView(showRegistration: $showRegistration)
+        Group {
+            if authManager.userSession == nil {
+                NavigationView {
+                    LoginView()
+                }
             } else {
-                LoginView(showRegistration: $showRegistration, isLoggedIn: $isLoggedIn)
+                MainMapView()
             }
         }
     }
