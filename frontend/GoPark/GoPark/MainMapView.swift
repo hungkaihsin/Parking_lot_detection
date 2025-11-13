@@ -8,14 +8,10 @@ struct MainMapView: View {
     @State private var showSideMenu = false
     @Binding var isLoggedIn: Bool
     @State private var stalls: [Feature] = [] // Changed to Feature
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 34.052235, longitude: -118.243683),
-        span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
-    )
 
     var body: some View {
         ZStack {
-            MapView(region: $region, features: stalls)
+            ParkingLotView(features: stalls)
                 .edgesIgnoringSafeArea(.all)
                 .onAppear {
                     Task {
