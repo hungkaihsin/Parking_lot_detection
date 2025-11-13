@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+ARG GIT_SHA
+ENV GIT_SHA=${GIT_SHA}
+
 # OS deps (psycopg2 + optional pg_isready)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
@@ -8,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     postgresql-client \
     libgl1 \
+    git \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 

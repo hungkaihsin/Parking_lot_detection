@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from . import models
+from . import models, config
 from .schemas import Recommendation, StallFeatureBase
 
 size_map = {"compact": 0, "midsize": 1, "full": 2, "suv": 3, "truck": 4}
@@ -84,23 +84,21 @@ def _apply_hard_filters(
                 ]
 
 
-    # --- THIS BLOCK IS THE ONLY CHANGE ---
+    # --- Vehicle Size Filtering ---
     pref_size = preferences.get("size_class")
-
     if pref_size is not None:
-        # Special rule: If user wants "compact", only show "compact".
-        if pref_size == 0:  # 0 is "compact"
+        if config.STRICT_SIZE_FIT:
+            # Strict mode: vehicle size must be less than or equal to stall size
             filtered_stalls = [
                 s for s in filtered_stalls
-                if s.features.width_class == 0
+                if s.features.width_class >= pref_size
             ]
-        # Standard rule: Vehicle must fit in the stall.
         else:
+            # Lenient mode (default): allow one size class larger
             filtered_stalls = [
                 s for s in filtered_stalls
-                if s.features.width_class >= pref_size and s.features.width_class <= pref_size + 1
+                if s.features.width_class >= pref_size -1
             ]
-    # --- END OF CHANGE ---
 
     return filtered_stalls
 
@@ -126,7 +124,7 @@ def _apply_soft_preferences(
                 reasons.append(f"Distance: {stall.features.dist_to_entrance:.1f}m")
 
         # 2. Buffered (between two empty spots)
-        if preferences.get("buffered"):
+        if config.BUFFERED_BOOST and preferences.get("buffered"):
             is_buffered = all(not n.is_occupied for n in stall.neighbors)
             if is_buffered:
                 score += 0.5  # Add a bonus for buffered stalls

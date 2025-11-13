@@ -1,71 +1,22 @@
 import Foundation
-import CoreLocation // Import CoreLocation for CLLocationCoordinate2D
 
-class NetworkManager {
+final class NetworkManager {
     static let shared = NetworkManager()
-    
-    private init() {}
-    
-    func getLotLayout(lotId: String) async throws -> FeatureCollection {
-        // For now, return hardcoded GeoJSON data.
-        // In the future, this will make a network request to a GeoJSON endpoint.
-        let geoJSONString = """
-        {
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": {
-                "id": "4ce86c63-3923-4e60-9a39-1a7bce7bd644",
-                "is_ev": true,
-                "is_ada": false
-              },
-              "geometry": {
-                "type": "Polygon",
-                "coordinates": [
-                  [
-                    [
-                      11,
-                      41
-                    ],
-                    [
-                      125,
-                      38
-                    ],
-                    [
-                      112,
-                      263
-                    ],
-                    [
-                      2,
-                      266
-                    ],
-                    [
-                      12,
-                      45
-                    ],
-                    [
-                      11,
-                      41
-                    ]
-                  ]
-                ]
-              }
-            }
-          ]
-        }
-        """
-        
-        guard let data = geoJSONString.data(using: .utf8) else {
-            throw NetworkError.invalidData
-        }
-        
-        let decoder = JSONDecoder()
-        let featureCollection = try decoder.decode(FeatureCollection.self, from: data)
-        return featureCollection
-    }
-}
+    private let baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
 
-enum NetworkError: Error {
-    case invalidData
+    private init() {}
+
+    func getHealthz() async throws -> HealthStatus {
+        let url = baseURL.appendingPathComponent("healthz")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let healthStatus = try JSONDecoder().decode(HealthStatus.self, from: data)
+        return healthStatus
+    }
+
+    func getLotLayout(lotId: String) async throws -> [Stall] {
+        let url = baseURL.appendingPathComponent("lots/\(lotId)/spots")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let stalls = try JSONDecoder().decode([Stall].self, from: data)
+        return stalls
+    }
 }
