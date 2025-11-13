@@ -7,7 +7,7 @@ struct MainMapView: View {
     @State private var showChat = false
     @State private var showSideMenu = false
     @Binding var isLoggedIn: Bool
-    @State private var stalls: [Stall] = []
+    @State private var stalls: [Feature] = [] // Changed to Feature
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 34.052235, longitude: -118.243683),
         span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
@@ -15,19 +15,18 @@ struct MainMapView: View {
 
     var body: some View {
         ZStack {
-            Map(coordinateRegion: $region, annotationItems: stalls) { stall in
-                MapPolygon(coordinates: convertCoordinates(stall.coordinates))
-                    .fill(Color.gray.opacity(0.4))
-                    .stroke(Color.gray, lineWidth: 1)
-            }
-            .edgesIgnoringSafeArea(.all)
-            .onAppear {
-                Task {
-                    do {
-                        self.stalls = await NetworkManager.shared.getLotLayout(lotId: "default")
+            MapView(region: $region, features: stalls)
+                .edgesIgnoringSafeArea(.all)
+                .onAppear {
+                    Task {
+                        do {
+                            let featureCollection = try await NetworkManager.shared.getLotLayout(lotId: "default")
+                            self.stalls = featureCollection.features
+                        } catch {
+                            print("Error fetching lot layout: \(error)")
+                        }
                     }
                 }
-            }
 
             VStack {
                 HStack {
@@ -114,10 +113,6 @@ struct MainMapView: View {
                 }
             }
         )
-    }
-
-    private func convertCoordinates(_ coords: [[Double]]) -> [CLLocationCoordinate2D] {
-        return coords.map { CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) }
     }
 }
 
