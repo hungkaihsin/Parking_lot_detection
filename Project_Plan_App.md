@@ -40,27 +40,23 @@
 
 **Note:** Your tasks have changed. We are no longer using `MapKit` for a GPS map. You will now build the view that shows a **static image** and draw the **(X,Y) pixel polygons** on top of it.
 
-**Task 1: Create Polygon Drawing Shape**
-* **File to Create:** `StallPolygonShape.swift`
-* **CLI Prompt:**
-    > "Create `StallPolygonShape.swift`.
-    > 1.  Import `SwiftUI`.
-    > 2.  Create a `struct StallPolygonShape: Shape`.
-    > 3.  Add a property: `var coordinates: [[Double]]`.
-    > 4.  Implement the `func path(in rect: CGRect) -> Path` method.
-    > 5.  Inside, create a `Path`. Use `path.move(to:)` for the first coordinate (e.g., `CGPoint(x: coordinates[0][0], y: coordinates[0][1])`) and `path.addLine(to:)` for the rest, then `path.closeSubpath()`."
+### **Jerry (Vision & Map Lead) \[Updated Tasks]**
 
-**Task 2: Create Static Lot View**
+**Note:** Your tasks have changed. We are no longer using `MapKit` for a GPS map. You will now build the view that shows a **static image** and draw the **(X,Y) pixel polygons** on top of it.
+
+**Task 1: Create the Static Lot View**
 * **File to Create:** `ParkingLotView.swift`
 * **CLI Prompt:**
     > "Create `ParkingLotView.swift`.
-    > 1.  Add `let lotName: String` and `@State private var stalls: [Stall] = []`.
-    > 2.  The `body` must be a `ZStack`.
-    > 3.  The bottom layer is `Image(lotName).resizable().aspectRatio(contentMode: .fit)`. (This assumes you've renamed your images to `lot_a`, `lot_b`, etc., in `Assets.xcassets`).
-    > 4.  The top layer is a `ForEach(stalls)` loop.
-    > 5.  Inside the `ForEach`, call `StallPolygonShape(coordinates: stall.coordinates)` and style it with `.fill(Color.gray.opacity(0.4))` and `.stroke(Color.gray, lineWidth: 1)`.
-    > 6.  Add an `.onAppear` modifier to the `ZStack` that calls `Task { await loadLotData() }`.
-    > 7.  Create a `private func loadLotData() async` that loads and decodes the correct local file (e.g., `\(lotName)_data.geojson`) and populates the `self.stalls` array."
+    > 1.  Add `let lotName: String`, `@State private var stalls: [Stall] = []`, and `@State private var imageSize: CGSize = .zero`.
+    > 2.  Add the `private let originalImageSizes: [String: CGSize]` dictionary. Populate it with the **real dimensions** for `lot_a`, `lot_b`, `lot_c`, `lot_d`, and `lot_e`.
+    > 3.  The `body` must be a `ZStack`. The bottom layer is `Image(lotName).resizable().aspectRatio(contentMode: .fit)`. Add the `GeometryReader` background modifier to get the `imageSize`.
+    > 4.  The top layer of the `ZStack` must be `StallsOverlayView(stalls: stalls, imageSize: imageSize, originalImageSize: originalImageSizes[lotName] ?? .zero)`.
+    > 5.  Add an `.onAppear` modifier to the `ZStack` that calls `Task { self.stalls = try await loadLotData(from: "\(lotName)_data.geojson") }`.
+    > 6.  Create the `private struct StallsOverlayView: View`. It must have `stalls`, `imageSize`, `originalImageSize`, and a `body` with a `ForEach` loop.
+    > 7.  Inside `StallsOverlayView`, create the `private func stallPath(for stall: Stall) -> Path`. This function must contain the **correct scaling logic** (calculating `scale`, `offsetX`, `offsetY`) to draw the polygons.
+    > 8.  Create the `private func loadLotData(from filename: String) async throws -> [Stall]` function. This function will load and decode the local GeoJSON file.
+    > 9.  At the bottom of the file, add all the necessary helper structs for decoding: `FeatureCollection`, `Feature`, `Geometry` (with `[[[Double]]]`), and the `AnyCodable` struct that correctly handles `null` values."
 
 ---
 
@@ -140,12 +136,14 @@
 * **File to Modify:** `ParkingLotView.swift`
 * **CLI Prompt:**
     > "Modify `ParkingLotView.swift`.
-    > 1.  Add `@State private var stallStatuses: [String: String] = [:]`.
-    > 2.  Add a `Timer`: `let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()`.
-    > 3.  Add an `.onReceive(timer)` modifier that calls `Task { await fetchLiveStatus() }`.
+    > 1.  Add a new state variable: `@State private var stallStatuses: [String: String] = [:]`. This dictionary will map a `stall.id` to its status (e.g., "FREE").
+    > 2.  Add a `Timer` to the `ParkingLotView`: `let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()`.
+    > 3.  Add an `.onReceive(timer)` modifier to the `ZStack`. The action should call `Task { await fetchLiveStatus() }`.
     > 4.  Create a `private func fetchLiveStatus() async`. This function must call `NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)` and populate the `stallStatuses` dictionary.
-    > 5.  Create a helper `private func colorFor(stall: Stall) -> Color` that checks `stallStatuses[stall.id]` and returns `.green` (for "FREE"), `.red` (for "TAKEN"), or `.gray` (default).
-    > 6.  In the `ForEach` loop, update `StallPolygonShape`'s fill to `.fill(colorFor(stall: stall).opacity(0.5))`."
+    > 5.  Pass the `stallStatuses` dictionary into `StallsOverlayView`: `StallsOverlayView(stalls: stalls, ..., stallStatuses: stallStatuses)`.
+    > 6.  Modify `StallsOverlayView` to accept the new variable: `let stallStatuses: [String: String]`.
+    > 7.  Inside `StallsOverlayView`, create a helper `private func colorFor(stall: Stall) -> Color` that checks `stallStatuses[stall.id]` and returns `.green` (for "FREE"), `.red` (for "TAKEN"), or `.gray` (default).
+    > 8.  In the `ForEach` loop, update the `stallPath` fill modifier to: `.fill(colorFor(stall: stall).opacity(0.5))`."
 
 ---
 
@@ -232,9 +230,13 @@
 * **CLI Prompt:**
     > "Modify `ParkingLotView.swift`.
     > 1.  Get the `recVM` via `@StateObject` (as added by Franco's task).
-    > 2.  Create helper func `private func strokeColorFor(stall: Stall) -> Color`. It should `if stall.id == recVM.recommendedStallID { return .yellow } else { return .gray }`.
-    > 3.  Create helper func `private func lineWidthFor(stall: Stall) -> CGFloat`. It should `if stall.id == recVM.recommendedStallID { return 5.0 } else { return 1.0 }`.
-    > 4.  In the `ForEach` loop, update `StallPolygonShape`'s stroke: `.stroke(strokeColorFor(stall: stall), lineWidth: lineWidthFor(stall: stall))`."
+    > 2.  Pass the `recVM.recommendedStallID` into `StallsOverlayView`: `StallsOverlayView(stalls: stalls, ..., recommendedStallID: recVM.recommendedStallID)`.
+    > 3.  Modify `StallsOverlayView` to accept the new variable: `let recommendedStallID: String?`.
+    > 4.  Inside `StallsOverlayView`'s `ForEach`, add logic to determine the stroke style:
+    >     `let isRecommended = stall.id == recommendedStallID`
+    >     `let strokeColor = isRecommended ? Color.yellow : Color.gray`
+    >     `let lineWidth = isRecommended ? 5.0 : 1.0`
+    > 5.  In the `ForEach`, update the `stallPath` stroke modifier to: `.stroke(strokeColor, lineWidth: lineWidth)`."
 
 **Task 2: Final Demo Prep (Revised Flow)**
 * **File to Modify:** N/A (Action)
