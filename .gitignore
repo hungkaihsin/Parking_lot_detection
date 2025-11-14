@@ -12,7 +12,7 @@ __pycache__/
 .env.*.local
 
 # Data & outputs
-# backend/data/**
+backend/data/**
 !backend/data/videos/
 !backend/data/README.md
 !backend/data/processed/.keep
