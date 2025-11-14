@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LotSelectionView: View {
-    @Binding var isLoggedIn: Bool
+    @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     // UI States
     @State private var showSideMenu = false // Only keep showSideMenu here
@@ -45,15 +45,17 @@ struct LotSelectionView: View {
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture { showSideMenu = false }
                     
-                    SideMenuView(showMenu: $showSideMenu, isLoggedIn: $isLoggedIn) // Assuming SideMenuView is defined
+                    SideMenuView(showMenu: $showSideMenu) // isLoggedIn is not needed here
                 }
             }
         )
+        .environmentObject(authManager) // Pass authManager as EnvironmentObject
     }
 }
 
 struct LotSelectionView_Previews: PreviewProvider {
     static var previews: some View {
-        LotSelectionView(isLoggedIn: .constant(true))
+        LotSelectionView()
+            .environmentObject(AuthManager.shared) // Provide AuthManager for preview
     }
 }

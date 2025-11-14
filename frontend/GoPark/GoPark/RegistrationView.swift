@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct RegistrationView: View {
+    @Binding var showRegistration: Bool
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
     @State private var showAlert = false
     @State private var authError: Error?
     @EnvironmentObject var authManager: AuthManager
-    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         VStack {
@@ -104,12 +104,16 @@ struct RegistrationView: View {
                 .padding(.top, 10)
 
             Button(action: {
+                print("RegistrationView: 'Sign Up' button tapped.")
                 Task {
                     do {
                         try await authManager.signUp(email: email, password: password, fullName: fullName)
+                        print("RegistrationView: Sign up successful.")
+                        showRegistration = false // Dismiss the sheet after successful sign-up
                     } catch {
                         authError = error
                         showAlert = true
+                        print("RegistrationView: Sign up failed with error: \(error.localizedDescription)")
                     }
                 }
             }) {
@@ -129,7 +133,8 @@ struct RegistrationView: View {
             HStack {
                 Text("Already have an account?")
                 Button(action: {
-                    presentationMode.wrappedValue.dismiss()
+                    print("RegistrationView: 'Log In' button tapped. Setting showRegistration to false.")
+                    showRegistration = false
                 }) {
                     Text("Log In")
                         .fontWeight(.bold)
@@ -147,7 +152,7 @@ struct RegistrationView: View {
 
 struct RegistrationView_Previews: PreviewProvider {
     static var previews: some View {
-        RegistrationView()
+        RegistrationView(showRegistration: .constant(true))
             .environmentObject(AuthManager.shared)
     }
 }

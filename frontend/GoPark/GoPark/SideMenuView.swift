@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Firebase
 import FirebaseAuth
@@ -6,7 +5,7 @@ import FirebaseAuth
 struct SideMenuView: View {
     @Binding var showMenu: Bool
     @State private var showProfile = false
-    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -72,6 +71,7 @@ struct SideMenuView: View {
 
             Button(action: {
                 authManager.signOut()
+                showMenu = false // Dismiss the side menu after logout
             }) {
                 Text("Log Out")
                     .foregroundColor(.red)
@@ -88,7 +88,7 @@ struct SideMenuView: View {
 
 struct SideMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        SideMenuView(showMenu: .constant(true))
-            .environmentObject(AuthManager.shared)
+        SideMenuView(showMenu: .constant(true)) // Remove isLoggedIn from preview
+            .environmentObject(AuthManager.shared) // Provide AuthManager for preview
     }
 }

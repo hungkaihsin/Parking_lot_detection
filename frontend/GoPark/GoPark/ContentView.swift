@@ -8,24 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var showRegistration = false
-    @State private var isLoggedIn = false
+    @StateObject private var authManager = AuthManager.shared // Use AuthManager
     @State private var showChat = false // Global chat state
 
     var body: some View {
         ZStack {
-            if isLoggedIn {
-                LotSelectionView(isLoggedIn: $isLoggedIn)
-            } else {
-                if showRegistration {
-                    RegistrationView(showRegistration: $showRegistration)
-                } else {
-                    LoginView(showRegistration: $showRegistration, isLoggedIn: $isLoggedIn)
+            if authManager.userSession == nil { // Check authManager.userSession
+                NavigationView { // Wrap LoginView in NavigationView
+                    LoginView()
                 }
+            } else {
+                LotSelectionView()
             }
 
             // Floating Chat Button (visible when logged in)
-            if isLoggedIn {
+            if authManager.userSession != nil { // Check authManager.userSession
                 VStack {
                     Spacer()
                     HStack {
@@ -49,6 +46,7 @@ struct ContentView: View {
         .sheet(isPresented: $showChat) {
             AIChatView() // Assuming AIChatView is defined
         }
+        .environmentObject(authManager) // Pass authManager as EnvironmentObject
     }
 }
 
