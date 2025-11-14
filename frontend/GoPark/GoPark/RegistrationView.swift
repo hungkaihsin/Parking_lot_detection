@@ -1,12 +1,13 @@
-
 import SwiftUI
-import UIKit
 
 struct RegistrationView: View {
     @State private var fullName = ""
     @State private var email = ""
     @State private var password = ""
-    @Binding var showRegistration: Bool
+    @State private var showAlert = false
+    @State private var authError: Error?
+    @EnvironmentObject var authManager: AuthManager
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         VStack {
@@ -103,7 +104,14 @@ struct RegistrationView: View {
                 .padding(.top, 10)
 
             Button(action: {
-                // Sign Up Action
+                Task {
+                    do {
+                        try await authManager.signUp(email: email, password: password, fullName: fullName)
+                    } catch {
+                        authError = error
+                        showAlert = true
+                    }
+                }
             }) {
                 Text("Sign Up")
                     .foregroundColor(.white)
@@ -114,11 +122,14 @@ struct RegistrationView: View {
             }
             .padding(.horizontal)
             .padding(.top, 20)
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Error"), message: Text(authError?.localizedDescription ?? "An unknown error occurred"), dismissButton: .default(Text("OK")))
+            }
 
             HStack {
                 Text("Already have an account?")
                 Button(action: {
-                    showRegistration = false
+                    presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Log In")
                         .fontWeight(.bold)
@@ -136,6 +147,7 @@ struct RegistrationView: View {
 
 struct RegistrationView_Previews: PreviewProvider {
     static var previews: some View {
-        RegistrationView(showRegistration: .constant(true))
+        RegistrationView()
+            .environmentObject(AuthManager.shared)
     }
 }

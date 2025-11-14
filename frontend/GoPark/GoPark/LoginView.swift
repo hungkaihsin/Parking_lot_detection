@@ -1,12 +1,11 @@
-
 import SwiftUI
-import UIKit
 
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
-    @Binding var showRegistration: Bool
-    @Binding var isLoggedIn: Bool
+    @State private var showAlert = false
+    @State private var authError: Error?
+    @EnvironmentObject var authManager: AuthManager
 
     var body: some View {
         VStack {
@@ -79,7 +78,14 @@ struct LoginView: View {
             .padding(.top, 10)
 
             Button(action: {
-                isLoggedIn = true
+                Task {
+                    do {
+                        try await authManager.signIn(email: email, password: password)
+                    } catch {
+                        authError = error
+                        showAlert = true
+                    }
+                }
             }) {
                 Text("Login")
                     .foregroundColor(.white)
@@ -90,6 +96,9 @@ struct LoginView: View {
             }
             .padding(.horizontal)
             .padding(.top, 20)
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Error"), message: Text(authError?.localizedDescription ?? "An unknown error occurred"), dismissButton: .default(Text("OK")))
+            }
 
             Button(action: {
                 // Forgot Password Action
@@ -101,9 +110,7 @@ struct LoginView: View {
 
             HStack {
                 Text("Don't have an account?")
-                Button(action: {
-                    showRegistration = true
-                }) {
+                NavigationLink(destination: RegistrationView()) {
                     Text("Sign Up")
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
@@ -120,6 +127,7 @@ struct LoginView: View {
 
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
-        LoginView(showRegistration: .constant(false), isLoggedIn: .constant(false))
+        LoginView()
+            .environmentObject(AuthManager.shared)
     }
 }

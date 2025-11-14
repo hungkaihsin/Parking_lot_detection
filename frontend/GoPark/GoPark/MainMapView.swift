@@ -6,8 +6,6 @@ struct MainMapView: View {
     @State private var searchText = ""
     @State private var showChat = false
     @State private var showSideMenu = false
-    @Binding var isLoggedIn: Bool
-    @State private var stalls: [Feature] = [] // Changed to Feature
 
     var body: some View {
         ZStack {
@@ -104,7 +102,7 @@ struct MainMapView: View {
                             showSideMenu = false
                         }
 
-                    SideMenuView(showMenu: $showSideMenu, isLoggedIn: $isLoggedIn)
+                    SideMenuView(showMenu: $showSideMenu)
                         .transition(.move(edge: .leading))
                 }
             }
@@ -114,6 +112,6 @@ struct MainMapView: View {
 
 struct MainMapView_Previews: PreviewProvider {
     static var previews: some View {
-        MainMapView(isLoggedIn: .constant(true))
+        MainMapView()
     }
 }
