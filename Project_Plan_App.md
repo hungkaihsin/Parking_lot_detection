@@ -58,16 +58,6 @@
     > 8.  Create the `private func loadLotData(from filename: String) async throws -> [Stall]` function. This function will load and decode the local GeoJSON file.
     > 9.  At the bottom of the file, add all the necessary helper structs for decoding: `FeatureCollection`, `Feature`, `Geometry` (with `[[[Double]]]`), and the `AnyCodable` struct that correctly handles `null` values."
 
-**Task 2: \[NEW HACKATHON TASK] Deploy Vision Model to Raindrop/Vultr**
-* **Goal:** Get your YOLO vision model running on the required hackathon platform.
-* **CLI Prompt:**
-    > "This is a backend task. Use the **Gemini CLI** to:
-    > 1.  Verify that Raindrop's **SmartInference** component can host a custom YOLO model. (This is the project's biggest risk).
-    > 2.  If it can't, use Gemini CLI to find a supported vision model on SmartInference that can perform object detection.
-    > 3.  Use the **Gemini CLI** to write the necessary configuration and Python code to deploy your chosen vision model to a **SmartInference** endpoint.
-    > 4.  This deployment will run on **Vultr's GPU infrastructure**, fulfilling the Vultr service requirement.
-    > 5.  Connect this SmartInference endpoint to the main `/predict/stalls` API that will be built on Raindrop's serverless compute."
-
 ---
 
 ### **Franco (UX/Flow Lead)**
