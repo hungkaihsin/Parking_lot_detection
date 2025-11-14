@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D15C7DDF2EC6B5AD00994DE8 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3F0BE342EC308BA001088CE /* FirebaseAnalytics */; };
+		D15C7DE02EC6B5AD00994DE8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A3F0BE352EC308BA001088CE /* FirebaseAuth */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A3F0BE262EC308B8001088CE /* GoPark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoPark.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D15C7DE02EC6B5AD00994DE8 /* FirebaseAuth in Frameworks */,
+				D15C7DDF2EC6B5AD00994DE8 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
