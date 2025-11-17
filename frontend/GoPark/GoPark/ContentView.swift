@@ -8,18 +8,45 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var authManager: AuthManager
+    @StateObject private var authManager = AuthManager.shared // Use AuthManager
+    @State private var showChat = false // Global chat state
 
     var body: some View {
-        Group {
-            if authManager.userSession == nil {
-                NavigationView {
+        ZStack {
+            if authManager.userSession == nil { // Check authManager.userSession
+                NavigationView { // Wrap LoginView in NavigationView
                     LoginView()
                 }
             } else {
-                MainMapView()
+                LotSelectionView()
+            }
+
+            // Floating Chat Button (visible when logged in)
+            if authManager.userSession != nil { // Check authManager.userSession
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            showChat = true
+                        }) {
+                            Image(systemName: "message.fill")
+                                .font(.title)
+                                .padding(25)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                                .shadow(radius: 10)
+                        }
+                        .padding()
+                    }
+                }
             }
         }
+        .sheet(isPresented: $showChat) {
+            AIChatView() // Assuming AIChatView is defined
+        }
+        .environmentObject(authManager) // Pass authManager as EnvironmentObject
     }
 }
 

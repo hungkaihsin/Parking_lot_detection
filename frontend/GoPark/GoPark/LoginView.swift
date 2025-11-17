@@ -110,7 +110,7 @@ struct LoginView: View {
 
             HStack {
                 Text("Don't have an account?")
-                NavigationLink(destination: RegistrationView()) {
+                NavigationLink(destination: RegistrationView(showRegistration: .constant(false))) { // Direct NavigationLink
                     Text("Sign Up")
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
