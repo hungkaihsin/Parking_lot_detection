@@ -48,7 +48,7 @@ def parse_vehicle_size(text: str) -> dict:
     sizes = []
 
     size_keywords = {
-        "compact": ["compacts?", "small cars?"],
+        "compact": ["compacts?", "small cars?", "compct"],
         "midsize": ["midsizes?"],
         "suv": ["suvs?"],
         "full": ["full sizes?", "fulls?", "large cars?", "big", "big car", "big cars"],

@@ -436,28 +436,28 @@ docker compose up -d --build
 
 ## Natural Language Parking Recommendations
 
-Use the `/recommend` endpoint to find parking spots using natural language queries.
+Use the `/recommend` endpoint to find parking spots using natural language queries. You can also use the `/recommend/nl` endpoint, which is an alias for `/recommend`.
 
 ### Quick Examples
 
 ```bash
 # Basic requests
-curl -X POST http://127.0.0.1:8000/recommend \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"query": "compact car spot"}'
 
 # EV charging
-curl -X POST http://127.0.0.1:8000/recommend \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"query": "ev spot with fast charger"}'
 
 # Accessibility
-curl -X POST http://127.0.0.1:8000/recommend \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"query": "handicap parking near entrance"}'
 
 # Complex requests
-curl -X POST http://127.0.0.1:8000/recommend \
+curl -X POST http://127.0.0.1:8000/recommend/nl \
   -H "Content-Type: application/json" \
   -d '{"query": "full size buffered ev spot with ccs"}'
 ```
