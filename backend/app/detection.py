@@ -8,12 +8,16 @@ import torch
 from torchvision import models as vision_models, transforms
 from PIL import Image
 import os
+from shapely import wkt
+import logging
+
+# Get the logger
+app_logger = logging.getLogger('recommender_api')
 
 # --- Vehicle Size Classifier ---
 
-# 1. Load the trained model
 # NOTE: This assumes the model file is present at the specified path inside the container.
-MODEL_PATH = "/app/models/size_classifier/car_classifier_best.pt"
+MODEL_PATH = "/app/models/car_classifier_best.pt"
 NUM_CLASSES = 5 # compact, midsize, full, suv, truck
 
 # Check if the model file exists before loading
@@ -43,9 +47,7 @@ if os.path.exists(MODEL_PATH):
     # We assume: 0: compact, 1: midsize, 2: full, 3: suv, 4: truck
     # A more robust solution would save this mapping alongside the model.
     IDX_TO_LABEL = {0: 'compact', 1: 'midsize', 2: 'full', 3: 'suv', 4: 'truck'}
-
 else:
-    size_classifier = None
     print(f"Warning: Size classifier model not found at {MODEL_PATH}. Size detection will be disabled.")
 
 
@@ -53,7 +55,7 @@ def classify_vehicle_size(image_crop_pil: Image.Image) -> str:
     """
     Uses the trained classifier to predict the size of the vehicle from a cropped image.
     """
-    if size_classifier is None:
+    if 'size_classifier' not in globals() or size_classifier is None:
         return "unknown"
         
     image_tensor = size_transform(image_crop_pil).unsqueeze(0).to(device)
@@ -68,7 +70,7 @@ def classify_vehicle_size(image_crop_pil: Image.Image) -> str:
 # --- End Vehicle Size Classifier ---
 
 
-def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Stall]) -> dict[str, dict]:
+def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Stall], conf: float = 0.25, iou: float = 0.4) -> dict[str, dict]:
     """
     Detects occupied stalls and classifies vehicle size.
 
@@ -76,6 +78,8 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
         model: The loaded YOLO model.
         image_bytes: The image content as bytes.
         stalls: A list of Stall objects from the database.
+        conf: Confidence threshold for object detection.
+        iou: IoU threshold for non-maximum suppression.
 
     Returns:
         A dictionary where keys are occupied stall IDs and values are dicts
@@ -86,15 +90,20 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     # 2. Run detection on the image
-    results = model(img)
+    results = model(img, conf=conf, iou=iou, imgsz=640)
 
-    # 3. Determine stall occupancy and vehicle size
+    # 3. Pre-parse stall polygons to avoid repeated WKT loading
+    precomputed_stalls = [(stall.id, wkt.loads(stall.geom_wkt)) for stall in stalls]
+
+    # 4. Determine stall occupancy and vehicle size
     occupancy_data = {}
+    detection_count = 0
     for r in results:
         for box in r.boxes:
             class_id = int(box.cls[0])
             class_name = model.names[class_id]
-            if class_name == 'car':
+            if class_name == 'occupied':
+                detection_count += 1
                 x1, y1, x2, y2 = [int(c) for c in box.xyxy[0]]
                 
                 # --- New: Use Classifier for Size ---
@@ -111,12 +120,10 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
                 center_y = (y1 + y2) / 2
                 detection_point = Point(center_x, center_y)
 
-                for stall in stalls:
-                    from shapely import wkt
-                    stall_polygon = wkt.loads(stall.geom_wkt)
+                for stall_id, stall_polygon in precomputed_stalls:
                     if stall_polygon.contains(detection_point):
                         # Store size information for the occupied stall
-                        occupancy_data[stall.id] = {"size": size_class}
+                        occupancy_data[stall_id] = {"size": size_class}
                         break
-    
+
     return occupancy_data

@@ -150,7 +150,7 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     if not stalls:
         return {"error": f"No stalls found for lot_id: {lot_id}"}
 
-    occupancy_data = get_occupied_stalls(model, image_bytes, stalls)
+    occupancy_data = get_occupied_stalls(model, image_bytes, stalls, conf=0.25, iou=0.4)
     occupied_ids = set(occupancy_data.keys())
 
     arrivals = []
