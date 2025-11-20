@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from ultralytics import YOLO
 import torch
 import logging
+import sys
 from logging.handlers import RotatingFileHandler
 import datetime
 import os
@@ -38,8 +39,15 @@ file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=bac
 
 file_handler.setFormatter(log_formatter)
 file_handler.setLevel(logging.INFO)
+
+# Add a StreamHandler to output to console
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(log_formatter)
+stream_handler.setLevel(logging.INFO)
+
 app_logger = logging.getLogger('recommender_api')
 app_logger.addHandler(file_handler)
+app_logger.addHandler(stream_handler) # Add stream handler
 app_logger.setLevel(logging.INFO)
 
 
@@ -162,6 +170,8 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     Accepts an image of a parking lot, runs stall detection,
     updates stall occupancy states, and logs arrival/departure events.
     """
+    start_time = datetime.datetime.now() # Start timing
+
     image_bytes = await file.read()
     stalls = db.query(models.Stall).filter(models.Stall.lot_id == lot_id).all()
 
@@ -171,7 +181,7 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     try:
         # The detection model can be slow; run it in a thread pool and apply a timeout.
         occupancy_data = await asyncio.wait_for(
-            asyncio.to_thread(get_occupied_stalls, model, image_bytes, stalls, conf=0.25, iou=0.4),
+            asyncio.to_thread(get_occupied_stalls, model, image_bytes, stalls, conf=config.DETECTION_CONF, iou=config.DETECTION_IOU),
             timeout=config.PREDICTION_TIMEOUT
         )
     except asyncio.TimeoutError:
@@ -197,12 +207,16 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
             departures.append(stall.id)
 
     db.commit()
+    
+    end_time = datetime.datetime.now() # End timing
+    latency_ms = (end_time - start_time).total_seconds() * 1000
 
     return {
         "lot_id": lot_id,
         "arrivals": arrivals,
         "departures": departures,
         "occupied_stalls_count": len(occupied_ids),
+        "latency_ms": latency_ms # Include latency in response
     }
 
 class RecommendationRequest(BaseModel):
