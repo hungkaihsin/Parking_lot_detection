@@ -28,9 +28,7 @@ struct SideMenuView: View {
             Divider()
                 .padding(.bottom, 20)
 
-            Button(action: {
-                showProfile = true
-            }) {
+            NavigationLink(destination: ProfileView()) {
                 HStack {
                     Image(systemName: "person.fill")
                         .foregroundColor(.blue)
@@ -39,9 +37,6 @@ struct SideMenuView: View {
                 }
             }
             .padding(.bottom, 10)
-            .sheet(isPresented: $showProfile) {
-                ProfileView()
-            }
 
             Button(action: {
                 // Parking History Action
