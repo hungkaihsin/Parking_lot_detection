@@ -4,11 +4,16 @@ struct LotSelectionView: View {
     @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     // UI States
-    @State private var showSideMenu = false // Only keep showSideMenu here
+    @State private var showSideMenu = false
+    @State private var showProfile = false
 
     var body: some View {
         NavigationView {
             ZStack {
+                NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                    EmptyView()
+                }
+                
                 // The main list of parking lots
                 List {
                     NavigationLink(destination: ParkingLotView(lotName: "lot_a")) {
@@ -45,7 +50,7 @@ struct LotSelectionView: View {
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture { showSideMenu = false }
                     
-                    SideMenuView(showMenu: $showSideMenu) // isLoggedIn is not needed here
+                    SideMenuView(showMenu: $showSideMenu, showProfile: $showProfile) // isLoggedIn is not needed here
                 }
             }
         )

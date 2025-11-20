@@ -4,7 +4,7 @@ import FirebaseAuth
 
 struct SideMenuView: View {
     @Binding var showMenu: Bool
-    @State private var showProfile = false
+    @Binding var showProfile: Bool
     @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     var body: some View {
@@ -28,7 +28,10 @@ struct SideMenuView: View {
             Divider()
                 .padding(.bottom, 20)
 
-            NavigationLink(destination: ProfileView()) {
+            Button(action: {
+                showProfile = true
+                showMenu = false
+            }) {
                 HStack {
                     Image(systemName: "person.fill")
                         .foregroundColor(.blue)
@@ -83,7 +86,7 @@ struct SideMenuView: View {
 
 struct SideMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        SideMenuView(showMenu: .constant(true)) // Remove isLoggedIn from preview
+        SideMenuView(showMenu: .constant(true), showProfile: .constant(false)) // Remove isLoggedIn from preview
             .environmentObject(AuthManager.shared) // Provide AuthManager for preview
     }
 }
