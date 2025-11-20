@@ -10,18 +10,17 @@ struct ParkingLotView: View {
     let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
     
     private let originalImageSizes: [String: CGSize] = [
-        "lot_a": CGSize(width: 234, height: 433),
-        "lot_b": CGSize(width: 273, height: 175),
-        "lot_c": CGSize(width: 305, height: 307),
-        "lot_d": CGSize(width: 619, height: 1100),
-        "lot_e": CGSize(width: 670, height: 730)
+        "lot_a": CGSize(width: 96, height: 180), // REAL SIZE
+        "lot_b": CGSize(width: 273, height: 175), // REAL SIZE
+        "lot_c": CGSize(width: 305, height: 307), // REAL SIZE
+        "lot_d": CGSize(width: 619, height: 1100), // REAL SIZE
+        "lot_e": CGSize(width: 670, height: 730)  // REAL SIZE
     ]
 
     var body: some View {
         ZStack {
-            Image(lotName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            Color.white
+                .aspectRatio(originalImageSizes[lotName]!.width / originalImageSizes[lotName]!.height, contentMode: .fit)
                 .background(
                     GeometryReader { geometry in
                         Color.clear
@@ -35,7 +34,8 @@ struct ParkingLotView: View {
                 stalls: stalls,
                 imageSize: imageSize,
                 originalImageSize: originalImageSizes[lotName] ?? .zero,
-                stallStatuses: stallStatuses
+                stallStatuses: stallStatuses,
+                lotName: lotName // Pass lotName for the hack fix
             )
         }
         .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
@@ -44,6 +44,7 @@ struct ParkingLotView: View {
                 do {
                     self.stalls = try await loadLotData(from: "\(lotName)_data.geojson")
                     await fetchLiveStatus()
+                    print("--- DEBUG: Loaded \(self.stalls.count) stalls for \(lotName) ---")
                 } catch {
                     print("Error loading lot data: \(error)")
                 }
@@ -58,7 +59,8 @@ struct ParkingLotView: View {
     
     private func fetchLiveStatus() async {
         do {
-            self.stallStatuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
+            // Assuming your NetworkManager is set up correctly. If not, this might fail silently.
+             self.stallStatuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
         } catch {
             print("Error fetching live stall status for \(lotName): \(error)")
         }
@@ -69,13 +71,14 @@ struct ParkingLotView: View {
         let imageSize: CGSize
         let originalImageSize: CGSize
         let stallStatuses: [StallStatus]
+        let lotName: String // Add this to know when to apply the hack
 
         var body: some View {
             ForEach(stalls) { stall in
-                stallPath(for: stall)
+                stallPath(for: stall, lotName: self.lotName)
                     .fill(colorFor(stall: stall).opacity(0.5))
                     .overlay(
-                        stallPath(for: stall)
+                        stallPath(for: stall, lotName: self.lotName)
                             .stroke(Color.gray, lineWidth: 1.0)
                     )
             }
@@ -95,7 +98,7 @@ struct ParkingLotView: View {
             return .green
         }
 
-        private func stallPath(for stall: Stall) -> Path {
+        private func stallPath(for stall: Stall, lotName: String) -> Path {
             var path = Path()
             guard originalImageSize != .zero, imageSize != .zero else { return path }
 
@@ -115,10 +118,21 @@ struct ParkingLotView: View {
                 let scaledWidth = originalImageSize.width * scale
                 offsetX = (imageSize.width - scaledWidth) / 2.0
             }
+            
+            // --- MANUAL SCALE FIX FOR LOT A ---
+            var dataScale: CGFloat = 1.0
+            
+            if lotName == "lot_a" {
+                // The JSON coordinates are roughly 2x larger than the image pixels.
+                // We shrink them by 50% to fit.
+                dataScale = 0.15
+            }
+            // --- END FIX ---
 
             let points: [CGPoint] = stall.coordinates.map {
-                let newX = ($0[0] * scale) + offsetX
-                let newY = ($0[1] * scale) + offsetY
+                // Apply dataScale to the coordinates BEFORE scaling to the screen
+                let newX = ($0[0] * dataScale * scale) + offsetX
+                let newY = ($0[1] * dataScale * scale) + offsetY
                 return CGPoint(x: newX, y: newY)
             }
 
@@ -139,23 +153,25 @@ struct ParkingLotView: View {
         let geoJSON = try JSONDecoder().decode(FeatureCollection.self, from: data)
 
         var loadedStalls: [Stall] = []
-        var processedIDs = Set<String>() // Keep track of processed IDs
+        var processedIDs = Set<String>()
 
         for feature in geoJSON.features {
             guard let properties = feature.properties?.value as? [String: Any],
                   let id = properties["id"] as? String,
                   id != "ENTRANCE",
-                  !processedIDs.contains(id) else { // Check for duplicates
+                  !processedIDs.contains(id) else {
                 continue
             }
 
-            if case .polygon(let coordinates) = feature.geometry.coordinates {
-                processedIDs.insert(id) // Add new ID to the set
+            // Correctly unpack your enum
+            if case .polygon(let coordinateArray) = feature.geometry.coordinates {
+                processedIDs.insert(id)
                 let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
                                                   isADA: (properties["is_ada"] as? Bool) ?? false,
                                                   size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
                 
-                let stall = Stall(id: id, features: stallFeatures, coordinates: coordinates[0])
+                // coordinateArray is [[[Double]]], so we take the first polygon [0]
+                let stall = Stall(id: id, features: stallFeatures, coordinates: coordinateArray[0])
                 loadedStalls.append(stall)
             }
         }

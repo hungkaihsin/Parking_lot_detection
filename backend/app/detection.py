@@ -9,6 +9,7 @@ from PIL import Image
 import os
 from shapely import wkt
 import logging
+import time
 
 # Get the logger
 app_logger = logging.getLogger('recommender_api')
@@ -84,65 +85,74 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
         A dictionary where keys are occupied stall IDs and values are dicts
         containing vehicle size info. e.g., {'A1': {'size': 'midsize'}}
     """
+    start_time = time.time()
+
     # 1. Decode the image
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    H, W, _ = img.shape
+    H, W, _ = img.shape # Original image dimensions
+    decode_time = (time.time() - start_time) * 1000
 
     # 2. Run detection on the image
-    results = model(img, conf=conf, iou=iou, imgsz=640)
+    yolo_start_time = time.time()
+    results = model(img, conf=conf, iou=iou, imgsz=640) # Pass conf and iou, and specify imgsz
+    yolo_inference_time = (time.time() - yolo_start_time) * 1000
 
     # 3. Pre-parse stall polygons to avoid repeated WKT loading
+    preparse_start_time = time.time()
     precomputed_stalls = [(stall.id, wkt.loads(stall.geom_wkt)) for stall in stalls]
+    preparse_time = (time.time() - preparse_start_time) * 1000
 
     # 4. Determine stall occupancy and vehicle size
+    postprocess_start_time = time.time()
     occupancy_data = {}
-    detection_count = 0
     for r in results:
-        # --- Coordinate Scaling ---
-        # Get original and resized image dimensions
+        # Get original image dimensions (YOLO results object already handles scaling)
         orig_H, orig_W = r.orig_shape
         
-        # Calculate scaling factor, preserving aspect ratio
-        scale = min(640 / orig_H, 640 / orig_W)
-        
-        # Calculate padding
-        pad_x = (640 - orig_W * scale) / 2
-        pad_y = (640 - orig_H * scale) / 2
-        # --- End Scaling ---
-
         for box in r.boxes:
             class_id = int(box.cls[0])
             class_name = model.names[class_id]
-            if class_name == 'occupied':
-                detection_count += 1
-                x1, y1, x2, y2 = [int(c) for c in box.xyxy[0]]
+            app_logger.info(f"Raw detection: class_name={class_name}, box.xyxy[0]={box.xyxy[0]}")
+            if class_name == 'occupied': # Assuming 'occupied' is the class for occupied vehicles
+                x1_orig, y1_orig, x2_orig, y2_orig = [float(c) for c in box.xyxy[0]]
                 
-                # --- New: Use Classifier for Size ---
-                # Crop the detected car
-                car_crop_bgr = img[y1:y2, x1:x2]
-                # Convert to PIL Image (RGB)
-                car_crop_pil = Image.fromarray(cv2.cvtColor(car_crop_bgr, cv2.COLOR_BGR2RGB))
+                # Ensure coordinates are within original image bounds
+                x1_orig = max(0, int(x1_orig))
+                y1_orig = max(0, int(y1_orig))
+                x2_orig = min(orig_W, int(x2_orig))
+                y2_orig = min(orig_H, int(y2_orig))
+
+                car_crop_bgr = img[y1_orig:y2_orig, x1_orig:x2_orig]
                 
-                # Classify the size using the trained model
-                size_class = classify_vehicle_size(car_crop_pil)
+                # Only classify if crop is valid (not empty)
+                if car_crop_bgr.shape[0] > 0 and car_crop_bgr.shape[1] > 0:
+                    car_crop_pil = Image.fromarray(cv2.cvtColor(car_crop_bgr, cv2.COLOR_BGR2RGB))
+                    size_class = classify_vehicle_size(car_crop_pil)
+                else:
+                    size_class = "unknown"
                 # --- End New ---
 
-                # --- Corrected Coordinate Scaling ---
-                # Get center of the box in the *resized* image space
-                center_x_resized = (x1 + x2) / 2
-                center_y_resized = (y1 + y2) / 2
-
-                # Scale the point back to the *original* image space
-                center_x_orig = (center_x_resized - pad_x) / scale
-                center_y_orig = (center_y_resized - pad_y) / scale
+                # Calculate center of the detection box in the ORIGINAL image space
+                center_x_orig = (x1_orig + x2_orig) / 2
+                center_y_orig = (y1_orig + y2_orig) / 2
                 detection_point = Point(center_x_orig, center_y_orig)
-                # --- End Correction ---
+                app_logger.info(f"Processing detection point: {detection_point.wkt}")
 
                 for stall_id, stall_polygon in precomputed_stalls:
+                    app_logger.info(f"Checking stall {stall_id} with polygon: {stall_polygon.wkt}")
                     if stall_polygon.contains(detection_point):
-                        # Store size information for the occupied stall
+                        app_logger.info(f"Detection point {detection_point.wkt} IS contained in stall {stall_id}")
                         occupancy_data[stall_id] = {"size": size_class}
                         break
+                    else:
+                        app_logger.info(f"Detection point {detection_point.wkt} NOT contained in stall {stall_id}")
+    postprocess_time = (time.time() - postprocess_start_time) * 1000
+    total_time = (time.time() - start_time) * 1000
 
+
+    app_logger.info(f"get_occupied_stalls timing: Decode={decode_time:.2f}ms, YOLO Inference={yolo_inference_time:.2f}ms, Preparse Stalls={preparse_time:.2f}ms, Postprocess={postprocess_time:.2f}ms, Total={total_time:.2f}ms")
+    app_logger.info(f"Final occupancy data: {occupancy_data}")
+    
     return occupancy_data
+
