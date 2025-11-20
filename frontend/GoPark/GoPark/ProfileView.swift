@@ -1,12 +1,14 @@
-
 import SwiftUI
+import FirebaseAuth
 
 struct ProfileView: View {
+    @EnvironmentObject var authManager: AuthManager
     @State private var make = ""
     @State private var model = ""
     @State private var year = ""
-    @State private var selectedVehicleType = 0
-    let vehicleTypes = ["Sedan", "SUV", "EV", "Compact"]
+    @State private var vehicleType: String = ""
+    @State private var showSaveAlert = false
+    let vehicleTypes = ["Compact", "Sedan", "SUV", "EV"]
 
     var body: some View {
         NavigationView {
@@ -19,10 +21,10 @@ struct ProfileView: View {
                             .foregroundColor(.gray)
 
                         VStack(alignment: .leading) {
-                            Text("Huy Nguyen")
+                            Text(authManager.userSession?.displayName ?? "User")
                                 .font(.title)
                                 .fontWeight(.bold)
-                            Text("huy.nguyen@example.com")
+                            Text(authManager.userSession?.email ?? "user@example.com")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -52,15 +54,16 @@ struct ProfileView: View {
                         .font(.headline)
                         .padding(.top)
 
-                    Picker("Vehicle Type", selection: $selectedVehicleType) {
-                        ForEach(0..<vehicleTypes.count) { index in
-                            Text(vehicleTypes[index]).tag(index)
+                    Picker("Vehicle Type", selection: $vehicleType) {
+                        ForEach(vehicleTypes, id: \.self) {
+                            Text($0)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
 
                     Button(action: {
-                        // Save Car Details Action
+                        UserDefaults.standard.set(vehicleType, forKey: "userVehicleType")
+                        showSaveAlert = true
                     }) {
                         Text("Save Car Details")
                             .foregroundColor(.white)
@@ -102,7 +105,7 @@ struct ProfileView: View {
                     Spacer()
 
                     Button(action: {
-                        // Log Out Action
+                        authManager.signOut()
                     }) {
                         Text("Log Out")
                             .foregroundColor(.red)
@@ -116,6 +119,12 @@ struct ProfileView: View {
             .navigationBarItems(trailing: Button("Edit") {
                 // Edit Action
             })
+            .onAppear {
+                self.vehicleType = UserDefaults.standard.string(forKey: "userVehicleType") ?? ""
+            }
+            .alert(isPresented: $showSaveAlert) {
+                Alert(title: Text("Saved!"), message: Text("Your car details have been updated."), dismissButton: .default(Text("OK")))
+            }
         }
     }
 }
@@ -123,5 +132,6 @@ struct ProfileView: View {
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         ProfileView()
+            .environmentObject(AuthManager.shared)
     }
 }

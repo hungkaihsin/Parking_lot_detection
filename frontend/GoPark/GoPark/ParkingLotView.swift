@@ -56,22 +56,11 @@ struct ParkingLotView: View {
 
         var body: some View {
             ForEach(stalls) { stall in
-                
-                // --- YOUR TEST IS HERE ---
-                // We check if the current stall is your test stall
-                let isTestStall = stall.id == "d22d8146-5d35-45d1-aed2-68dc38630612"
-                
-                // Use a red color for the test stall, and gray for all others
-                let fillColor = isTestStall ? Color.red.opacity(0.5) : Color.gray.opacity(0.4)
-                let strokeColor = isTestStall ? Color.red : Color.gray
-                let lineWidth: CGFloat = isTestStall ? 2.0 : 1.0
-                // --- END OF TEST ---
-                
                 stallPath(for: stall)
-                    .fill(fillColor)
+                    .fill(Color.gray.opacity(0.4))
                     .overlay(
                         stallPath(for: stall)
-                            .stroke(strokeColor, lineWidth: lineWidth)
+                            .stroke(Color.gray, lineWidth: 1.0)
                     )
             }
         }
@@ -140,11 +129,6 @@ struct ParkingLotView: View {
             if let properties = feature.properties?.value as? [String: Any],
                let id = properties["id"] as? String {
                 
-                // --- TEST REMOVED ---
-                // The guard statement was removed.
-                // We will now load ALL stalls.
-                // --- END OF TEST ---
-
                 let coordinates = feature.geometry.coordinates
                 
                 let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
