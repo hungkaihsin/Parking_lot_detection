@@ -5,6 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from .db import Base
 import datetime
+from shapely import wkt # Import wkt
 
 # Association Table for Neighbors (Many-to-Many self-referential)
 stall_neighbors = Table(
@@ -21,6 +22,19 @@ class Stall(Base):
     center_x = Column(Float)
     center_y = Column(Float)
     is_occupied = Column(Boolean, default=False, nullable=False)
+
+    # Add a private attribute to cache the shapely Polygon object
+    _polygon = None
+
+    @property
+    def polygon(self):
+        """
+        Returns the shapely Polygon object for the stall's geometry.
+        Loads it from geom_wkt and caches it on first access.
+        """
+        if self._polygon is None:
+            self._polygon = wkt.loads(self.geom_wkt)
+        return self._polygon
 
     # Relationships
     features = relationship("StallFeature", back_populates="stall", uselist=False, cascade="all, delete-orphan")

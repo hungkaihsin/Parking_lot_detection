@@ -5,12 +5,10 @@ struct ParkingLotView: View {
     let lotName: String
     @State private var stalls: [Stall] = []
     @State private var imageSize: CGSize = .zero
-    @State private var stallStatuses: [String: String] = [:]
+    @State private var stallStatuses: [StallStatus] = []
     
     let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
     
-    // You MUST get the real image sizes for this to work.
-    // Use Finder -> Get Info on your image files to find their "Dimensions".
     private let originalImageSizes: [String: CGSize] = [
         "lot_a": CGSize(width: 234, height: 433),
         "lot_b": CGSize(width: 273, height: 175),
@@ -21,7 +19,6 @@ struct ParkingLotView: View {
 
     var body: some View {
         ZStack {
-            // This loads the image from Assets (e.g., "lot_a")
             Image(lotName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -45,9 +42,8 @@ struct ParkingLotView: View {
         .onAppear {
             Task {
                 do {
-                    // This now loads all stalls for the lot
                     self.stalls = try await loadLotData(from: "\(lotName)_data.geojson")
-                    await fetchLiveStatus() // Fetch initial status
+                    await fetchLiveStatus()
                 } catch {
                     print("Error loading lot data: \(error)")
                 }
@@ -62,12 +58,7 @@ struct ParkingLotView: View {
     
     private func fetchLiveStatus() async {
         do {
-            let statuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
-            var statusDict: [String: String] = [:]
-            for status in statuses {
-                statusDict[status.id] = status.status
-            }
-            self.stallStatuses = statusDict
+            self.stallStatuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
         } catch {
             print("Error fetching live stall status for \(lotName): \(error)")
         }
@@ -77,7 +68,7 @@ struct ParkingLotView: View {
         let stalls: [Stall]
         let imageSize: CGSize
         let originalImageSize: CGSize
-        let stallStatuses: [String: String]
+        let stallStatuses: [StallStatus]
 
         var body: some View {
             ForEach(stalls) { stall in
@@ -91,66 +82,54 @@ struct ParkingLotView: View {
         }
         
         private func colorFor(stall: Stall) -> Color {
-            switch stallStatuses[stall.id] {
-            case "occupied":
-                return .red
-            case "empty":
-                return .green
-            default:
-                return .green // Default to empty (green)
+            if let status = stallStatuses.first(where: { $0.id == stall.id }) {
+                switch status.status {
+                case "occupied":
+                    return .red
+                case "empty":
+                    return .green
+                default:
+                    return .green
+                }
             }
+            return .green
         }
 
         private func stallPath(for stall: Stall) -> Path {
-                var path = Path()
-                
-                // This guard is correct
-                guard originalImageSize != .zero, imageSize != .zero else {
-                    return path
-                }
+            var path = Path()
+            guard originalImageSize != .zero, imageSize != .zero else { return path }
 
-                // --- THIS IS THE NEW, CORRECT SCALING LOGIC ---
-                
-                // 1. Calculate the aspect ratios
-                let imageAspectRatio = originalImageSize.width / originalImageSize.height
-                let viewAspectRatio = imageSize.width / imageSize.height
-                
-                var scale: CGFloat = 1.0
-                var offsetX: CGFloat = 0.0
-                var offsetY: CGFloat = 0.0
+            let imageAspectRatio = originalImageSize.width / originalImageSize.height
+            let viewAspectRatio = imageSize.width / imageSize.height
+            
+            var scale: CGFloat = 1.0
+            var offsetX: CGFloat = 0.0
+            var offsetY: CGFloat = 0.0
 
-                // 2. Determine the correct scale factor and offsets
-                //    based on whether the image is "letterboxed" (space top/bottom)
-                //    or "pillarboxed" (space left/right).
-                if imageAspectRatio > viewAspectRatio {
-                    // Image is wider than the view (letterboxed)
-                    scale = imageSize.width / originalImageSize.width
-                    let scaledHeight = originalImageSize.height * scale
-                    offsetY = (imageSize.height - scaledHeight) / 2.0 // Centering offset
-                } else {
-                    // Image is taller than the view (pillarboxed) - THIS IS YOUR CASE for lot_a
-                    scale = imageSize.height / originalImageSize.height
-                    let scaledWidth = originalImageSize.width * scale
-                    offsetX = (imageSize.width - scaledWidth) / 2.0 // Centering offset
-                }
-
-                // 3. Apply the single scale factor and offset to each point
-                let points: [CGPoint] = stall.coordinates.map {
-                    let newX = ($0[0] * scale) + offsetX
-                    let newY = ($0[1] * scale) + offsetY
-                    return CGPoint(x: newX, y: newY)
-                }
-                // --- END OF NEW LOGIC ---
-
-                guard let first = points.first else { return path }
-                path.move(to: first)
-                for p in points.dropFirst() { path.addLine(to: p) }
-                path.closeSubpath()
-                return path
+            if imageAspectRatio > viewAspectRatio {
+                scale = imageSize.width / originalImageSize.width
+                let scaledHeight = originalImageSize.height * scale
+                offsetY = (imageSize.height - scaledHeight) / 2.0
+            } else {
+                scale = imageSize.height / originalImageSize.height
+                let scaledWidth = originalImageSize.width * scale
+                offsetX = (imageSize.width - scaledWidth) / 2.0
             }
+
+            let points: [CGPoint] = stall.coordinates.map {
+                let newX = ($0[0] * scale) + offsetX
+                let newY = ($0[1] * scale) + offsetY
+                return CGPoint(x: newX, y: newY)
+            }
+
+            guard let first = points.first else { return path }
+            path.move(to: first)
+            for p in points.dropFirst() { path.addLine(to: p) }
+            path.closeSubpath()
+            return path
+        }
     }
 
-    // Helper function to load GeoJSON
     private func loadLotData(from filename: String) async throws -> [Stall] {
         guard let url = Bundle.main.url(forResource: filename.replacingOccurrences(of: ".geojson", with: ""), withExtension: "geojson") else {
             throw NSError(domain: "ParkingLotView", code: 1, userInfo: [NSLocalizedDescriptionKey: "GeoJSON file not found: \(filename)"])
@@ -160,13 +139,18 @@ struct ParkingLotView: View {
         let geoJSON = try JSONDecoder().decode(FeatureCollection.self, from: data)
 
         var loadedStalls: [Stall] = []
+        var processedIDs = Set<String>() // Keep track of processed IDs
 
         for feature in geoJSON.features {
-            if let properties = feature.properties?.value as? [String: Any],
-               let id = properties["id"] as? String {
-                
-                let coordinates = feature.geometry.coordinates
-                
+            guard let properties = feature.properties?.value as? [String: Any],
+                  let id = properties["id"] as? String,
+                  id != "ENTRANCE",
+                  !processedIDs.contains(id) else { // Check for duplicates
+                continue
+            }
+
+            if case .polygon(let coordinates) = feature.geometry.coordinates {
+                processedIDs.insert(id) // Add new ID to the set
                 let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
                                                   isADA: (properties["is_ada"] as? Bool) ?? false,
                                                   size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
@@ -181,6 +165,24 @@ struct ParkingLotView: View {
 
 // MARK: - Helper Structs for GeoJSON Decoding
 
+enum GeometryCoordinates: Decodable {
+    case point([Double])
+    case polygon([[[Double]]])
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let point = try? container.decode([Double].self) {
+            self = .point(point)
+            return
+        }
+        if let polygon = try? container.decode([[[Double]]].self) {
+            self = .polygon(polygon)
+            return
+        }
+        throw DecodingError.typeMismatch(GeometryCoordinates.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported geometry type"))
+    }
+}
+
 struct FeatureCollection: Decodable {
     let type: String
     let features: [Feature]
@@ -192,13 +194,11 @@ struct Feature: Decodable {
     let properties: AnyCodable?
 }
 
-// This struct is correct
 struct Geometry: Decodable {
     let type: String
-    let coordinates: [[[Double]]]
+    let coordinates: GeometryCoordinates
 }
 
-// This struct is correct (handles null)
 struct AnyCodable: Codable {
     var value: Any
     
@@ -257,7 +257,6 @@ struct AnyCodable: Codable {
         }
     }
 }
-
 
 struct ParkingLotView_Previews: PreviewProvider {
     static var previews: some View {

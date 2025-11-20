@@ -1,6 +1,6 @@
 import Foundation
 
-final class class NetworkManager {
+final class NetworkManager {
     static let shared = NetworkManager()
     private let baseURL = URL(string: "http://127.0.0.1:8000")!
 
@@ -36,6 +36,7 @@ final class class NetworkManager {
     func getLiveStallStatus(lotName: String) async throws -> [StallStatus] {
         let lotId = apiLotId(from: lotName)
         let url = baseURL.appendingPathComponent("lots/\(lotId)/spots")
+        print("Requesting URL: \(url)") // DEBUG
         
         let (data, _) = try await URLSession.shared.data(from: url)
 
