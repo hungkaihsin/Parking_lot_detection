@@ -128,6 +128,7 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
                 "id": s.id,
                 "lot_id": s.lot_id,
                 "geom_wkt": s.geom_wkt,
+                "is_occupied": s.is_occupied,
                 "features": {
                     "is_ada": s.features.is_ada,
                     "is_ev": s.features.is_ev,

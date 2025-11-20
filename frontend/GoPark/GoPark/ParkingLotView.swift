@@ -1,9 +1,13 @@
 import SwiftUI
+import Combine
 
 struct ParkingLotView: View {
     let lotName: String
     @State private var stalls: [Stall] = []
     @State private var imageSize: CGSize = .zero
+    @State private var stallStatuses: [String: String] = [:]
+    
+    let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
     
     // You MUST get the real image sizes for this to work.
     // Use Finder -> Get Info on your image files to find their "Dimensions".
@@ -33,19 +37,39 @@ struct ParkingLotView: View {
             StallsOverlayView(
                 stalls: stalls,
                 imageSize: imageSize,
-                originalImageSize: originalImageSizes[lotName] ?? .zero
+                originalImageSize: originalImageSizes[lotName] ?? .zero,
+                stallStatuses: stallStatuses
             )
         }
-        .navigationTitle(lotName)
+        .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
         .onAppear {
             Task {
                 do {
                     // This now loads all stalls for the lot
                     self.stalls = try await loadLotData(from: "\(lotName)_data.geojson")
+                    await fetchLiveStatus() // Fetch initial status
                 } catch {
                     print("Error loading lot data: \(error)")
                 }
             }
+        }
+        .onReceive(timer) { _ in
+            Task {
+                await fetchLiveStatus()
+            }
+        }
+    }
+    
+    private func fetchLiveStatus() async {
+        do {
+            let statuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
+            var statusDict: [String: String] = [:]
+            for status in statuses {
+                statusDict[status.id] = status.status
+            }
+            self.stallStatuses = statusDict
+        } catch {
+            print("Error fetching live stall status for \(lotName): \(error)")
         }
     }
 
@@ -53,15 +77,27 @@ struct ParkingLotView: View {
         let stalls: [Stall]
         let imageSize: CGSize
         let originalImageSize: CGSize
+        let stallStatuses: [String: String]
 
         var body: some View {
             ForEach(stalls) { stall in
                 stallPath(for: stall)
-                    .fill(Color.gray.opacity(0.4))
+                    .fill(colorFor(stall: stall).opacity(0.5))
                     .overlay(
                         stallPath(for: stall)
                             .stroke(Color.gray, lineWidth: 1.0)
                     )
+            }
+        }
+        
+        private func colorFor(stall: Stall) -> Color {
+            switch stallStatuses[stall.id] {
+            case "occupied":
+                return .red
+            case "empty":
+                return .green
+            default:
+                return .green // Default to empty (green)
             }
         }
 

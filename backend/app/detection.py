@@ -94,7 +94,7 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
         for box in r.boxes:
             class_id = int(box.cls[0])
             class_name = model.names[class_id]
-            if class_name == 'car':
+            if class_name == 'occupied':
                 x1, y1, x2, y2 = [int(c) for c in box.xyxy[0]]
                 
                 # --- New: Use Classifier for Size ---
