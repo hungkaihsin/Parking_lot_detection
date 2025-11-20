@@ -171,13 +171,12 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     try:
         # The detection model can be slow; run it in a thread pool and apply a timeout.
         occupancy_data = await asyncio.wait_for(
-            asyncio.to_thread(get_occupied_stalls, model, image_bytes, stalls),
+            asyncio.to_thread(get_occupied_stalls, model, image_bytes, stalls, conf=0.25, iou=0.4),
             timeout=config.PREDICTION_TIMEOUT
         )
     except asyncio.TimeoutError:
         app_logger.error(f"Prediction timed out for lot {lot_id} after {config.PREDICTION_TIMEOUT}s.")
         raise HTTPException(status_code=504, detail="Prediction request timed out.")
-
     occupied_ids = set(occupancy_data.keys())
 
     arrivals = []
