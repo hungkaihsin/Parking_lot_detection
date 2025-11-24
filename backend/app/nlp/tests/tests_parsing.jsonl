@@ -117,3 +117,16 @@
 {"text": "a spot that is not for an SUV and not near the entrance", "expected": {"size": "not_suv", "near": false}}
 {"text": "I need a spot that is not for a truck and does not have a CCS connector", "expected": {"size": "not_truck", "connector": "no_ccs"}}
 {"text": "a spot that is not for an EV and does not have a J1772 connector", "expected": {"ev": false, "connector": "no_j1772"}}
+{"text": "I need a handicap spot for my truck that is not an EV", "expected": {"ada": true, "size": "truck", "ev": false}}
+{"text": "I need a spot that is not for a compact car and not for an EV", "expected": {"size": "not_compact", "ev": false}}
+{"text": "I need a spot for my midsize car that is not near the entrance and not an EV", "expected": {"size": "midsize", "near": false, "ev": false}}
+{"text": "I need a spot that is not for a truck and not for an SUV and not an EV", "expected": {"size": ["not_truck", "not_suv"], "ev": false}}
+{"text": "I need a spot for my compct car", "expected": {"size": "compact"}}
+{"text": "I need a spot for my car", "expected": {}}
+{"text": "I want a spot with a heated steering wheel", "expected": {}}
+{"text": "I want a spot with a heated steering wheel and not for an EV", "expected": {"ev": false}}
+{"text": "I want a spot with a heated steering wheel and for an EV", "expected": {"ev": true}}
+{"text": "I want a spot with a heated steering wheel and for an EV and not for a compact car", "expected": {"ev": true, "size": "not_compact"}}
+{"text": "I want a spot with a heated steering wheel and not for an EV and not for a compact car", "expected": {"ev": false, "size": "not_compact"}}
+{"text": "I want a spot with a heated steering wheel and for an EV and for a compact car", "expected": {"ev": true, "size": "compact"}}
+{"text": "I want a spot with a heated steering wheel and for an EV and not for a compact car and not near the entrance", "expected": {"ev": true, "size": "not_compact", "near": false}}

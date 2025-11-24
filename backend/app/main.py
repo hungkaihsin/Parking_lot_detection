@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException
+from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
@@ -8,9 +9,13 @@ from dotenv import load_dotenv
 from ultralytics import YOLO
 import torch
 import logging
+import sys
+from logging.handlers import RotatingFileHandler
 import datetime
 import os
 import subprocess
+import asyncio
+import time
 
 from .db import get_db, get_cached_stall_catalog
 from . import models
@@ -23,20 +28,41 @@ from .nlp.nl_parse import parse_request
 # Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
 
-# Set up logging
+# Set up logging with rotation
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log_file = 'logs/recommendations.log'
-file_handler = logging.FileHandler(log_file)
+
+# Use RotatingFileHandler
+max_bytes = 10 * 1024 * 1024  # 10 MB
+backup_count = 5
+file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
+
 file_handler.setFormatter(log_formatter)
 file_handler.setLevel(logging.INFO)
+
+# Add a StreamHandler to output to console
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setFormatter(log_formatter)
+stream_handler.setLevel(logging.INFO)
+
 app_logger = logging.getLogger('recommender_api')
 app_logger.addHandler(file_handler)
+app_logger.addHandler(stream_handler) # Add stream handler
 app_logger.setLevel(logging.INFO)
 
 
 # Load .env (ensures DATABASE_URL is available)
 load_dotenv()
 app = FastAPI(title="Parking Lot Recommender API")
+
+# --- Middleware ---
+@app.middleware("http")
+async def profile_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    app_logger.info(f"Request {request.method} {request.url.path} processed in {process_time:.4f}s")
+    return response
 
 # --- Globals ---
 model = None
@@ -128,6 +154,7 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
                 "id": s.id,
                 "lot_id": s.lot_id,
                 "geom_wkt": s.geom_wkt,
+                "is_occupied": s.is_occupied,
                 "features": {
                     "is_ada": s.features.is_ada,
                     "is_ev": s.features.is_ev,
@@ -144,13 +171,23 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
     Accepts an image of a parking lot, runs stall detection,
     updates stall occupancy states, and logs arrival/departure events.
     """
+    start_time = datetime.datetime.now() # Start timing
+
     image_bytes = await file.read()
     stalls = db.query(models.Stall).filter(models.Stall.lot_id == lot_id).all()
 
     if not stalls:
         return {"error": f"No stalls found for lot_id: {lot_id}"}
 
-    occupancy_data = get_occupied_stalls(model, image_bytes, stalls)
+    try:
+        # The detection model can be slow; run it in a thread pool and apply a timeout.
+        occupancy_data = await asyncio.wait_for(
+            asyncio.to_thread(get_occupied_stalls, model, image_bytes, stalls, conf=config.DETECTION_CONF, iou=config.DETECTION_IOU),
+            timeout=config.PREDICTION_TIMEOUT
+        )
+    except asyncio.TimeoutError:
+        app_logger.error(f"Prediction timed out for lot {lot_id} after {config.PREDICTION_TIMEOUT}s.")
+        raise HTTPException(status_code=504, detail="Prediction request timed out.")
     occupied_ids = set(occupancy_data.keys())
 
     arrivals = []
@@ -171,12 +208,16 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
             departures.append(stall.id)
 
     db.commit()
+    
+    end_time = datetime.datetime.now() # End timing
+    latency_ms = (end_time - start_time).total_seconds() * 1000
 
     return {
         "lot_id": lot_id,
         "arrivals": arrivals,
         "departures": departures,
         "occupied_stalls_count": len(occupied_ids),
+        "latency_ms": latency_ms # Include latency in response
     }
 
 class RecommendationRequest(BaseModel):
@@ -188,14 +229,11 @@ class RecommendationRequest(BaseModel):
     near: Optional[bool] = Field(None, example=False)
     buffered: Optional[bool] = Field(False, example=False, description="Prefers a buffered spot (between two empty spots)")
 
-@app.post("/recommend")
-def recommend(
+def _run_recommendations_sync(
     request: RecommendationRequest,
-    db: Session = Depends(get_db)
+    db: Session
 ):
-    """
-    Recommends parking stalls based on structured user preferences or a natural language query.
-    """
+    """Synchronous helper for recommendation logic."""
     start_time = datetime.datetime.now()
 
     if request.query:
@@ -206,7 +244,7 @@ def recommend(
     # 1. Get all stalls from the cache
     cached_stalls = get_cached_stall_catalog(db)
     
-    # Re-attach cached objects to the current session to prevent DetachedInstanceError
+    # Re-attach cached objects to the current session
     available_stalls = [db.merge(s) for s in cached_stalls]
 
     # 2. Get recommendations
@@ -232,8 +270,30 @@ def recommend(
     }
     app_logger.info(log_entry)
 
-
     return {"recommendations": recommendations[:3]}
+
+@app.post("/recommend")
+async def recommend(
+    request: RecommendationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Recommends parking stalls based on structured user preferences or a natural language query.
+    """
+    try:
+        return await asyncio.wait_for(
+            run_in_threadpool(_run_recommendations_sync, request=request, db=db),
+            timeout=config.RECOMMENDATION_TIMEOUT
+        )
+    except asyncio.TimeoutError:
+        app_logger.error(f"Recommendation timed out after {config.RECOMMENDATION_TIMEOUT}s.")
+        raise HTTPException(status_code=504, detail="Recommendation request timed out.")
+    except Exception as e:
+        # If HTTPException was raised in the thread, re-raise it
+        if isinstance(e, HTTPException):
+            raise e
+        app_logger.error(f"An unexpected error occurred during recommendation: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
 
 
 @app.post("/chat")

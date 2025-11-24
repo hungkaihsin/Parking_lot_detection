@@ -167,7 +167,7 @@
 
 **Franco**
 - NL tests to **100** lines; finalize canned suite.  
-- **Done:** 100/100 pass; E2E suite green.
+- **Done:** 140/140 pass; E2E suite green.
 
 **Milestone M4 (Nov 23):** Metrics pass & stable.
 
