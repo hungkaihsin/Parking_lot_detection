@@ -147,7 +147,7 @@ struct ParkingLotView: View {
 
                 let coordinates = feature.geometry.coordinates
                 
-                let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
+                let stallFeatures = LocalStallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
                                                   isADA: (properties["is_ada"] as? Bool) ?? false,
                                                   size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
                 

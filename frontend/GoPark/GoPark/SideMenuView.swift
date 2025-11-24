@@ -5,6 +5,7 @@ import FirebaseAuth
 struct SideMenuView: View {
     @Binding var showMenu: Bool
     @State private var showProfile = false
+    @State private var showTestPage = false
     @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     var body: some View {
@@ -66,6 +67,21 @@ struct SideMenuView: View {
                 }
             }
             .padding(.bottom, 10)
+
+            Button(action: {
+                showTestPage = true
+            }) {
+                HStack {
+                    Image(systemName: "hammer.fill")
+                        .foregroundColor(.purple)
+                    Text("Daniel's Test Page")
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.bottom, 10)
+            .sheet(isPresented: $showTestPage) {
+                DanielTestView()
+            }
 
             Spacer()
 

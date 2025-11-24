@@ -2,7 +2,7 @@ import Foundation
 
 final class NetworkManager {
     static let shared = NetworkManager()
-    private let baseURL = URL(string: "http://127.0.0.1:8000/api/v1")!
+    private let baseURL = URL(string: "http://127.0.0.1:8000")!
 
     private init() {}
 
@@ -18,5 +18,18 @@ final class NetworkManager {
         let (data, _) = try await URLSession.shared.data(from: url)
         let stalls = try JSONDecoder().decode([Stall].self, from: data)
         return stalls
+    }
+
+    func getRecommendations(requestBody: RecommendationRequest) async throws -> [Recommendation] {
+        let url = baseURL.appendingPathComponent("recommend")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        request.httpBody = try JSONEncoder().encode(requestBody)
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(RecommendationResponse.self, from: data)
+        return response.recommendations
     }
 }

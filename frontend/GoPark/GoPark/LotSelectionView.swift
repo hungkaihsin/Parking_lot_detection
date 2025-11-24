@@ -45,10 +45,12 @@ struct LotSelectionView: View {
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture { showSideMenu = false }
                     
-                    SideMenuView(showMenu: $showSideMenu) // isLoggedIn is not needed here
+                    SideMenuView(showMenu: $showSideMenu)
+                        .transition(.move(edge: .leading))
                 }
             }
         )
+        .animation(.easeInOut, value: showSideMenu)
         .environmentObject(authManager) // Pass authManager as EnvironmentObject
     }
 }
