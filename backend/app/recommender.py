@@ -134,7 +134,7 @@ def _apply_soft_preferences(
         if preferences.get("size_class") is not None:
             size_diff = stall.features.width_class - preferences["size_class"]
             if size_diff == 0:
-                score += 1.0 # Exact match
+                score += 50.0 # Exact match
                 reasons.append("Perfect fit for your vehicle")
             elif size_diff > 0:
                 score += 1 / (size_diff + 1) # Reward smaller size differences
