@@ -8,19 +8,19 @@ class RecommendationViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     @MainActor
-    func getRecommendations(query: String) async {
+    func getRecommendation(lotName: String, vehicleType: String, wantsEV: Bool) async {
         self.isLoading = true
         self.errorMessage = nil
         self.recommendations = []
 
-        let wantsEV = UserDefaults.standard.bool(forKey: "userWantsEV")
-        
+        let sizeClass = vehicleTypeToSizeClass(vehicleType)
+
         let requestBody = RecommendationRequest(
-            query: query,
+            query: nil,
             isAda: nil,
             isEv: wantsEV,
             connector: nil,
-            sizeClass: nil,
+            sizeClass: sizeClass,
             near: nil,
             buffered: nil
         )
@@ -36,5 +36,22 @@ class RecommendationViewModel: ObservableObject {
         }
         
         self.isLoading = false
+    }
+
+    private func vehicleTypeToSizeClass(_ vehicleType: String) -> Int {
+        switch vehicleType.lowercased() {
+        case "compact":
+            return 0
+        case "midsize":
+            return 1
+        case "full":
+            return 2
+        case "suv":
+            return 3
+        case "truck":
+            return 4
+        default:
+            return 1 // Default to Midsize
+        }
     }
 }
