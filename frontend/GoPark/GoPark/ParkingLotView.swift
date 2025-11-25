@@ -1,41 +1,33 @@
 import SwiftUI
-import Combine
 
 struct ParkingLotView: View {
     let lotName: String
     @State private var stalls: [Stall] = []
     @State private var imageSize: CGSize = .zero
-    @State private var stallStatuses: [StallStatus] = []
-    
-    let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
     
     private let originalImageSizes: [String: CGSize] = [
-        "lot_a": CGSize(width: 96, height: 180), // REAL SIZE
-        "lot_b": CGSize(width: 273, height: 175), // REAL SIZE
-        "lot_c": CGSize(width: 305, height: 307), // REAL SIZE
-        "lot_d": CGSize(width: 619, height: 1100), // REAL SIZE
-        "lot_e": CGSize(width: 670, height: 730)  // REAL SIZE
+        "lot_a": CGSize(width: 234, height: 433),
+        "lot_b": CGSize(width: 273, height: 175),
+        "lot_c": CGSize(width: 305, height: 307),
+        "lot_d": CGSize(width: 619, height: 1100),
+        "lot_e": CGSize(width: 670, height: 730)
     ]
 
     var body: some View {
         ZStack {
-            Color.white
-                .aspectRatio(originalImageSizes[lotName]!.width / originalImageSizes[lotName]!.height, contentMode: .fit)
+            Image(lotName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
                 .background(
                     GeometryReader { geometry in
-                        Color.clear
-                            .onAppear {
-                                self.imageSize = geometry.size
-                            }
+                        Color.clear.onAppear { self.imageSize = geometry.size }
                     }
                 )
             
             StallsOverlayView(
                 stalls: stalls,
                 imageSize: imageSize,
-                originalImageSize: originalImageSizes[lotName] ?? .zero,
-                stallStatuses: stallStatuses,
-                lotName: lotName // Pass lotName for the hack fix
+                originalImageSize: originalImageSizes[lotName] ?? .zero
             )
         }
         .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
@@ -43,26 +35,10 @@ struct ParkingLotView: View {
             Task {
                 do {
                     self.stalls = try await loadLotData(from: "\(lotName)_data.geojson")
-                    await fetchLiveStatus()
-                    print("--- DEBUG: Loaded \(self.stalls.count) stalls for \(lotName) ---")
                 } catch {
                     print("Error loading lot data: \(error)")
                 }
             }
-        }
-        .onReceive(timer) { _ in
-            Task {
-                await fetchLiveStatus()
-            }
-        }
-    }
-    
-    private func fetchLiveStatus() async {
-        do {
-            // Assuming your NetworkManager is set up correctly. If not, this might fail silently.
-             self.stallStatuses = try await NetworkManager.shared.getLiveStallStatus(lotName: self.lotName)
-        } catch {
-            print("Error fetching live stall status for \(lotName): \(error)")
         }
     }
 
@@ -70,35 +46,22 @@ struct ParkingLotView: View {
         let stalls: [Stall]
         let imageSize: CGSize
         let originalImageSize: CGSize
-        let stallStatuses: [StallStatus]
-        let lotName: String // Add this to know when to apply the hack
 
         var body: some View {
             ForEach(stalls) { stall in
-                stallPath(for: stall, lotName: self.lotName)
-                    .fill(colorFor(stall: stall).opacity(0.5))
+                let fillColor = Color.gray.opacity(0.4)
+                let strokeColor = Color.gray
+                
+                stallPath(for: stall)
+                    .fill(fillColor)
                     .overlay(
-                        stallPath(for: stall, lotName: self.lotName)
-                            .stroke(Color.gray, lineWidth: 1.0)
+                        stallPath(for: stall)
+                            .stroke(strokeColor, lineWidth: 1.0)
                     )
             }
         }
-        
-        private func colorFor(stall: Stall) -> Color {
-            if let status = stallStatuses.first(where: { $0.id == stall.id }) {
-                switch status.status {
-                case "occupied":
-                    return .red
-                case "empty":
-                    return .green
-                default:
-                    return .green
-                }
-            }
-            return .green
-        }
 
-        private func stallPath(for stall: Stall, lotName: String) -> Path {
+        private func stallPath(for stall: Stall) -> Path {
             var path = Path()
             guard originalImageSize != .zero, imageSize != .zero else { return path }
 
@@ -118,21 +81,10 @@ struct ParkingLotView: View {
                 let scaledWidth = originalImageSize.width * scale
                 offsetX = (imageSize.width - scaledWidth) / 2.0
             }
-            
-            // --- MANUAL SCALE FIX FOR LOT A ---
-            var dataScale: CGFloat = 1.0
-            
-            if lotName == "lot_a" {
-                // The JSON coordinates are roughly 2x larger than the image pixels.
-                // We shrink them by 50% to fit.
-                dataScale = 0.15
-            }
-            // --- END FIX ---
 
             let points: [CGPoint] = stall.coordinates.map {
-                // Apply dataScale to the coordinates BEFORE scaling to the screen
-                let newX = ($0[0] * dataScale * scale) + offsetX
-                let newY = ($0[1] * dataScale * scale) + offsetY
+                let newX = ($0[0] * scale) + offsetX
+                let newY = ($0[1] * scale) + offsetY
                 return CGPoint(x: newX, y: newY)
             }
 
@@ -153,24 +105,15 @@ struct ParkingLotView: View {
         let geoJSON = try JSONDecoder().decode(FeatureCollection.self, from: data)
 
         var loadedStalls: [Stall] = []
-        var processedIDs = Set<String>()
-
         for feature in geoJSON.features {
-            guard let properties = feature.properties?.value as? [String: Any],
-                  let id = properties["id"] as? String,
-                  id != "ENTRANCE",
-                  !processedIDs.contains(id) else {
-                continue
-            }
-
-            // Correctly unpack your enum
-            if case .polygon(let coordinateArray) = feature.geometry.coordinates {
-                processedIDs.insert(id)
+            if let properties = feature.properties?.value as? [String: Any],
+               let id = properties["id"] as? String,
+               case .polygon(let coordinateArray) = feature.geometry.coordinates {
+                
                 let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
                                                   isADA: (properties["is_ada"] as? Bool) ?? false,
                                                   size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
                 
-                // coordinateArray is [[[Double]]], so we take the first polygon [0]
                 let stall = Stall(id: id, features: stallFeatures, coordinates: coordinateArray[0])
                 loadedStalls.append(stall)
             }
@@ -216,68 +159,117 @@ struct Geometry: Decodable {
 }
 
 struct AnyCodable: Codable {
+
     var value: Any
+
     
+
     init(_ value: Any) {
+
         self.value = value
+
     }
+
     
+
     init(from decoder: Decoder) throws {
+
         let container = try decoder.singleValueContainer()
 
+
+
         if container.decodeNil() {
+
             value = NSNull()
+
             return
+
         }
+
         
+
         if let string = try? container.decode(String.self) {
+
             value = string
+
         } else if let int = try? container.decode(Int.self) {
+
             value = int
+
         } else if let double = try? container.decode(Double.self) {
+
             value = double
+
         } else if let bool = try? container.decode(Bool.self) {
+
             value = bool
+
         } else if let array = try? container.decode([AnyCodable].self) {
+
             value = array.map { $0.value }
+
         } else if let dictionary = try? container.decode([String: AnyCodable].self) {
+
             value = dictionary.mapValues { $0.value }
+
         } else {
+
             throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type found in JSON properties"))
+
         }
+
     }
+
+
 
     func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if value is NSNull {
-            try container.encodeNil()
-            return
-        }
-        
-        if let string = value as? String {
-            try container.encode(string)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let bool = value as? Bool {
-            try container.encode(bool)
-        } else if let array = value as? [Any] {
-            try container.encode(array.map(AnyCodable.init))
-        } else if let dictionary = value as? [String: Any] {
-            try container.encode(dictionary.mapValues(AnyCodable.init))
-        } else {
-            let context = EncodingError.Context(codingPath: container.codingPath, debugDescription: "Unsupported type")
-            throw EncodingError.invalidValue(value, context)
-        }
-    }
-}
 
-struct ParkingLotView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            ParkingLotView(lotName: "lot_a")
+        var container = encoder.singleValueContainer()
+
+        
+
+        if value is NSNull {
+
+            try container.encodeNil()
+
+            return
+
         }
+
+        
+
+        if let string = value as? String {
+
+            try container.encode(string)
+
+        } else if let int = value as? Int {
+
+            try container.encode(int)
+
+        } else if let double = value as? Double {
+
+            try container.encode(double)
+
+        } else if let bool = value as? Bool {
+
+            try container.encode(bool)
+
+        } else if let array = value as? [Any] {
+
+            try container.encode(array.map(AnyCodable.init))
+
+        } else if let dictionary = value as? [String: Any] {
+
+            try container.encode(dictionary.mapValues(AnyCodable.init))
+
+        } else {
+
+            let context = EncodingError.Context(codingPath: container.codingPath, debugDescription: "Unsupported type")
+
+            throw EncodingError.invalidValue(value, context)
+
+        }
+
     }
+
 }
