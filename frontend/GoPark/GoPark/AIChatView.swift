@@ -1,100 +1,123 @@
-
 import SwiftUI
 
-struct AIChatView: View {
-    @State private var messageText = ""
+struct ChatMessage: Identifiable {
+    let id = UUID()
+    let text: String
+    let isUser: Bool
+}
 
+struct AIChatView: View {
+    @ObservedObject var recVM: RecommendationViewModel
+    @Binding var isPresented: Bool
+    
+    @State private var messageText = ""
+    @State private var messages: [ChatMessage] = [
+        ChatMessage(text: "Hello! Tell me what you need (e.g., 'EV spot', 'Wide spot'). I'll search all lots for you.", isUser: false)
+    ]
+    
     var body: some View {
         NavigationView {
             VStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 15) {
-                        // AI Message
-                        HStack(alignment: .top) {
-                            Image(systemName: "sparkle")
-                                .font(.title)
-                                .foregroundColor(.blue)
-                            Text("Hello! How can I help you find the perfect parking spot today?")
-                                .padding()
-                                .background(Color(UIColor.systemGray6))
-                                .cornerRadius(15)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 15) {
+                            ForEach(messages) { msg in
+                                ChatBubble(message: msg)
+                            }
+                            
+                            if recVM.isLoading {
+                                HStack {
+                                    ProgressView()
+                                    Text("Searching all parking lots...")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding(.leading)
+                            }
                         }
-
-                        // User Message
-                        HStack {
-                            Spacer()
-                            Text("I'm looking for parking near the city center.")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
-                        }
-                        
-                        // AI Message
-                        HStack(alignment: .top) {
-                            Image(systemName: "sparkle")
-                                .font(.title)
-                                .foregroundColor(.blue)
-                            Text("Sure, I can help with that. Do you have any specific requirements, like vehicle size or EV charging?")
-                                .padding()
-                                .background(Color(UIColor.systemGray6))
-                                .cornerRadius(15)
+                        .padding()
+                    }
+                    // Fix: iOS 17+ compatible onChange
+                    .onChange(of: messages.count) { oldValue, newValue in
+                        if let lastId = messages.last?.id {
+                            withAnimation {
+                                proxy.scrollTo(lastId, anchor: .bottom)
+                            }
                         }
                     }
-                    .padding()
                 }
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        Button("Parking for SUV") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("EV Charging") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("Covered Parking") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("Cheapest Parking") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.bottom)
-
+                
+                // Input Area
                 HStack {
-                    TextField("Type your message...", text: $messageText)
+                    TextField("Type your request...", text: $messageText)
                         .padding()
                         .background(Color(UIColor.systemGray6))
                         .cornerRadius(20)
-
-                    Button(action: {
-                        // Send message action
-                    }) {
+                        .disabled(recVM.isLoading)
+                    
+                    Button(action: sendMessage) {
                         Image(systemName: "paperplane.fill")
-                            .font(.title)
-                            .foregroundColor(.blue)
+                            .font(.title2)
+                            .foregroundColor(recVM.isLoading ? .gray : .blue)
                     }
+                    .disabled(recVM.isLoading || messageText.isEmpty)
                 }
                 .padding()
             }
-            .navigationTitle("AI Assistant")
+            .navigationTitle("AI Parking Assistant")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") { isPresented = false }
+                }
+            }
+        }
+    }
+    
+    func sendMessage() {
+        let query = messageText
+        messageText = ""
+        
+        messages.append(ChatMessage(text: query, isUser: true))
+        
+        Task {
+            await recVM.getNLPRecommendation(query: query)
+            
+            if let response = recVM.aiResponseReason {
+                messages.append(ChatMessage(text: response, isUser: false))
+            }
         }
     }
 }
 
-struct AIChatView_Previews: PreviewProvider {
-    static var previews: some View {
-        AIChatView()
+// MARK: - Helper Views
+
+struct ChatBubble: View {
+    let message: ChatMessage
+    
+    var body: some View {
+        HStack(alignment: .top) {
+            if message.isUser {
+                Spacer()
+                Text(message.text)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(15)
+            } else {
+                Image(systemName: "sparkle")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                    .padding(.top, 5)
+                
+                // FIX: LocalizedStringKey enables Markdown rendering (e.g., **Bold**)
+                Text(LocalizedStringKey(message.text))
+                    .padding()
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(15)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+            }
+        }
     }
 }
