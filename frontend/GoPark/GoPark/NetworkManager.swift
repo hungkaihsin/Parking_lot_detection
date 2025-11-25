@@ -6,26 +6,6 @@ final class NetworkManager {
 
     private init() {}
 
-    // DTO to decode the raw API response for a stall
-    private struct StallDataDTO: Codable {
-        let id: String // This will be the composite ID, e.g., "LotA-..."
-        let isOccupied: Bool
-
-        enum CodingKeys: String, CodingKey {
-            case id
-            case isOccupied = "is_occupied"
-        }
-    }
-    
-    private func apiLotId(from internalName: String) -> String {
-        // Converts "lot_a" to "LotA"
-        if let range = internalName.range(of: "lot_") {
-            let letter = internalName[range.upperBound...].uppercased()
-            return "Lot\(letter)"
-        }
-        return internalName // Fallback
-    }
-
     func getHealthz() async throws -> HealthStatus {
         let url = baseURL.appendingPathComponent("healthz")
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -33,28 +13,22 @@ final class NetworkManager {
         return healthStatus
     }
 
-    func getLiveStallStatus(lotName: String) async throws -> [StallStatus] {
-        let lotId = apiLotId(from: lotName)
-        let url = baseURL.appendingPathComponent("lots/\(lotId)/spots")
-        print("Requesting URL: \(url)") // DEBUG
+    func getRecommendations(requestBody: RecommendationRequest) async throws -> [Recommendation] {
+        let url = baseURL.appendingPathComponent("recommend")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let (data, _) = try await URLSession.shared.data(from: url)
+        request.httpBody = try JSONEncoder().encode(requestBody)
 
-        let stallDTOs = try JSONDecoder().decode([StallDataDTO].self, from: data)
-
-        // Map from the DTO to the StallStatus model used by the view.
-        // This is where we fix the ID mismatch.
-        let stallStatuses = stallDTOs.compactMap { dto -> StallStatus? in
-            // The API gives a composite ID "LotA-uuid-goes-here". We need to extract the "uuid-goes-here" part.
-            // A UUID contains hyphens, so we must rejoin the parts after splitting.
-            let idParts = dto.id.split(separator: "-")
-            guard idParts.count > 1 else { return nil }
-            let originalId = idParts.dropFirst().joined(separator: "-")
-            
-            let statusString = dto.isOccupied ? "occupied" : "empty"
-            return StallStatus(id: originalId, status: statusString)
-        }
-
-        return stallStatuses
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(RecommendationResponse.self, from: data)
+        return response.recommendations
     }
+
+    // This function will be added back later if needed, but for now
+    // ParkingLotView loads from local files.
+    // func getLotLayout(lotId: String) async throws -> [Stall] {
+    //     ...
+    // }
 }
