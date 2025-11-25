@@ -7,9 +7,6 @@ struct ParkingLotView: View {
     @State private var imageSize: CGSize = .zero
     @State private var stallStatuses: [StallStatus] = []
     
-    @StateObject private var recVM = RecommendationViewModel()
-    @State private var showChat = false
-    
     let timer = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
     
     private let originalImageSizes: [String: CGSize] = [
@@ -38,34 +35,10 @@ struct ParkingLotView: View {
                 imageSize: imageSize,
                 originalImageSize: originalImageSizes[lotName] ?? .zero,
                 stallStatuses: stallStatuses,
-                lotName: lotName, // Pass lotName for the hack fix
-                recommendedStallID: recVM.recommendedStallID
+                lotName: lotName // Pass lotName for the hack fix
             )
-            
-            if recVM.isLoading {
-                ProgressView("Finding spot...")
-                    .padding()
-                    .background(Color.black.opacity(0.7))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
         }
         .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
-        .navigationBarItems(trailing: Button(action: {
-            showChat = true
-        }) {
-            Image(systemName: "bubble.left.and.bubble.right.fill")
-        })
-        .sheet(isPresented: $showChat) {
-            AIChatView(lotName: lotName, recommendedStallID: $recVM.recommendedStallID)
-        }
-        .alert(item: $recVM.errorMessage) { error in
-            Alert(
-                title: Text("Error"),
-                message: Text(error.message),
-                dismissButton: .default(Text("OK"))
-            )
-        }
         .onAppear {
             Task {
                 do {
@@ -99,19 +72,14 @@ struct ParkingLotView: View {
         let originalImageSize: CGSize
         let stallStatuses: [StallStatus]
         let lotName: String // Add this to know when to apply the hack
-        let recommendedStallID: String?
 
         var body: some View {
             ForEach(stalls) { stall in
-                let isRecommended = stall.id == recommendedStallID
-                let strokeColor = isRecommended ? Color.yellow : Color.gray
-                let lineWidth = isRecommended ? 5.0 : 1.0
-
                 stallPath(for: stall, lotName: self.lotName)
                     .fill(colorFor(stall: stall).opacity(0.5))
                     .overlay(
                         stallPath(for: stall, lotName: self.lotName)
-                            .stroke(strokeColor, lineWidth: lineWidth)
+                            .stroke(Color.gray, lineWidth: 1.0)
                     )
             }
         }
@@ -200,10 +168,7 @@ struct ParkingLotView: View {
                 processedIDs.insert(id)
                 let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
                                                   isADA: (properties["is_ada"] as? Bool) ?? false,
-                                                  size: (properties["size"] as? String),
-                                                  connectors: nil,
-                                                  widthClass: nil,
-                                                  distToEntrance: nil)
+                                                  size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
                 
                 // coordinateArray is [[[Double]]], so we take the first polygon [0]
                 let stall = Stall(id: id, features: stallFeatures, coordinates: coordinateArray[0])

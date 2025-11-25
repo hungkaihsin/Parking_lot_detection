@@ -57,36 +57,4 @@ final class NetworkManager {
 
         return stallStatuses
     }
-
-    func getStructuredRecommendation(lotName: String, vehicleType: String, wantsEV: Bool) async throws -> [Recommendation] {
-        let lotId = apiLotId(from: lotName)
-        let url = baseURL.appendingPathComponent("recommend")
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let structuredRequest = StructuredRequest(isADA: nil, isEV: wantsEV, connector: nil, size: vehicleType, near: nil, buffered: nil)
-        request.httpBody = try JSONEncoder().encode(structuredRequest)
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let recommendations = try JSONDecoder().decode([Recommendation].self, from: data)
-        return recommendations
-    }
-
-    func getNLPRecommendation(lotName: String, query: String) async throws -> [Recommendation] {
-        let lotId = apiLotId(from: lotName) // Assuming lotId is sent as lot_name
-        let url = baseURL.appendingPathComponent("recommend/nl") // Following the prompt for /recommend/nl
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let nlpRequest = NLPRequest(lotName: lotId, query: query)
-        request.httpBody = try JSONEncoder().encode(nlpRequest)
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let recommendations = try JSONDecoder().decode([Recommendation].self, from: data)
-        return recommendations
-    }
 }
