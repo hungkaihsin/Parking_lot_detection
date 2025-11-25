@@ -5,6 +5,7 @@ import FirebaseAuth
 struct SideMenuView: View {
     @Binding var showMenu: Bool
     @Binding var showProfile: Bool
+    @Binding var showTestPage: Bool
     @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
 
     var body: some View {
@@ -65,6 +66,19 @@ struct SideMenuView: View {
             }
             .padding(.bottom, 10)
 
+            Button(action: {
+                showTestPage = true
+                showMenu = false
+            }) {
+                HStack {
+                    Image(systemName: "hammer.fill")
+                        .foregroundColor(.purple)
+                    Text("Daniel's Test Page")
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.bottom, 10)
+
             Spacer()
 
             Button(action: {
@@ -86,7 +100,7 @@ struct SideMenuView: View {
 
 struct SideMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        SideMenuView(showMenu: .constant(true), showProfile: .constant(false)) // Remove isLoggedIn from preview
+        SideMenuView(showMenu: .constant(true), showProfile: .constant(false), showTestPage: .constant(false))
             .environmentObject(AuthManager.shared) // Provide AuthManager for preview
     }
 }

@@ -48,6 +48,7 @@ def get_cached_stall_catalog(db_session):
         _stall_catalog_cache = (
             db_session.query(models.Stall)
             .options(joinedload(models.Stall.features))
+            .filter(models.Stall.is_occupied == False)
             .all()
         )
         _cache_expiry = now + CACHE_DURATION

@@ -1,20 +1,15 @@
 import SwiftUI
 
 struct LotSelectionView: View {
-    @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
+    @EnvironmentObject var authManager: AuthManager
 
-    // UI States
     @State private var showSideMenu = false
     @State private var showProfile = false
+    @State private var showTestPage = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                NavigationLink(destination: ProfileView(), isActive: $showProfile) {
-                    EmptyView()
-                }
-                
-                // The main list of parking lots
                 List {
                     NavigationLink(destination: ParkingLotView(lotName: "lot_a")) {
                         Text("Parking Lot A")
@@ -41,6 +36,12 @@ struct LotSelectionView: View {
                         }
                     }
                 }
+                .sheet(isPresented: $showProfile) {
+                    ProfileView()
+                }
+                .sheet(isPresented: $showTestPage) {
+                    DanielTestView()
+                }
             }
         }
         .overlay(
@@ -49,18 +50,20 @@ struct LotSelectionView: View {
                     Color.black.opacity(0.4)
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture { showSideMenu = false }
-                    
-                    SideMenuView(showMenu: $showSideMenu, showProfile: $showProfile) // isLoggedIn is not needed here
+
+                    SideMenuView(showMenu: $showSideMenu, showProfile: $showProfile, showTestPage: $showTestPage)
+                        .transition(.move(edge: .leading))
                 }
             }
         )
-        .environmentObject(authManager) // Pass authManager as EnvironmentObject
+        .animation(.easeInOut, value: showSideMenu)
+        .environmentObject(authManager)
     }
 }
 
 struct LotSelectionView_Previews: PreviewProvider {
     static var previews: some View {
         LotSelectionView()
-            .environmentObject(AuthManager.shared) // Provide AuthManager for preview
+            .environmentObject(AuthManager.shared)
     }
 }
