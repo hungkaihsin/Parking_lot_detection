@@ -20,7 +20,8 @@ WORKDIR /app
 ENV PYTHONPATH /app
 # Install Python deps first (cache-friendly)
 COPY requirements.txt ./
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Install CPU-only PyTorch to avoid downloading huge GPU binaries
+RUN pip install "torch==2.8.0" torchvision --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy app

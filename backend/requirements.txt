@@ -15,7 +15,8 @@ pandas
 numpy==2.2.6
 scikit-learn
 ultralytics==8.3.203
-torch==2.8.0
+# torch==2.8.0  <-- Installed in Dockerfile for CPU optimization
+torchvision
 opencv-python==4.12.0.88
 shapely==2.1.1
 
