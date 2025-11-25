@@ -1,75 +1,48 @@
 
 import SwiftUI
 
+struct ChatMessage: Identifiable {
+    let id = UUID()
+    let text: String
+    let isUser: Bool // true for user, false for AI
+}
+
 struct AIChatView: View {
-    @State private var messageText = ""
+    let lotName: String
+    @Binding var recommendedStallID: String?
+
+    @State private var messageText: String = ""
+    @State private var messages: [ChatMessage] = []
 
     var body: some View {
         NavigationView {
             VStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
-                        // AI Message
-                        HStack(alignment: .top) {
-                            Image(systemName: "sparkle")
-                                .font(.title)
-                                .foregroundColor(.blue)
-                            Text("Hello! How can I help you find the perfect parking spot today?")
-                                .padding()
-                                .background(Color(UIColor.systemGray6))
-                                .cornerRadius(15)
-                        }
-
-                        // User Message
-                        HStack {
-                            Spacer()
-                            Text("I'm looking for parking near the city center.")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
-                        }
-                        
-                        // AI Message
-                        HStack(alignment: .top) {
-                            Image(systemName: "sparkle")
-                                .font(.title)
-                                .foregroundColor(.blue)
-                            Text("Sure, I can help with that. Do you have any specific requirements, like vehicle size or EV charging?")
-                                .padding()
-                                .background(Color(UIColor.systemGray6))
-                                .cornerRadius(15)
+                        ForEach(messages) { message in
+                            HStack {
+                                if message.isUser {
+                                    Spacer()
+                                    Text(message.text)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(15)
+                                } else {
+                                    Image(systemName: "sparkle")
+                                        .font(.title)
+                                        .foregroundColor(.blue)
+                                    Text(message.text)
+                                        .padding()
+                                        .background(Color(UIColor.systemGray6))
+                                        .cornerRadius(15)
+                                    Spacer()
+                                }
+                            }
                         }
                     }
                     .padding()
                 }
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        Button("Parking for SUV") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("EV Charging") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("Covered Parking") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                        Button("Cheapest Parking") {}
-                            .padding()
-                            .background(Color(UIColor.systemGray5))
-                            .cornerRadius(20)
-                            .foregroundColor(.black)
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.bottom)
 
                 HStack {
                     TextField("Type your message...", text: $messageText)
@@ -78,23 +51,52 @@ struct AIChatView: View {
                         .cornerRadius(20)
 
                     Button(action: {
-                        // Send message action
+                        sendMessage()
                     }) {
                         Image(systemName: "paperplane.fill")
                             .font(.title)
                             .foregroundColor(.blue)
                     }
+                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding()
             }
             .navigationTitle("AI Assistant")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Initial AI message
+                messages.append(ChatMessage(text: "Hello! How can I help you find the perfect parking spot today in \(lotName)?", isUser: false))
+            }
+        }
+    }
+
+    private func sendMessage() {
+        let userMessage = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !userMessage.isEmpty else { return }
+
+        messages.append(ChatMessage(text: userMessage, isUser: true))
+        messageText = ""
+
+        Task {
+            do {
+                let recommendations = try await NetworkManager.shared.getNLPRecommendation(lotName: lotName, query: userMessage)
+                if let firstRecommendation = recommendations.first {
+                    messages.append(ChatMessage(text: "I recommend stall \(firstRecommendation.stallId) because: \(firstRecommendation.reason)", isUser: false))
+                    recommendedStallID = firstRecommendation.stallId
+                } else {
+                    messages.append(ChatMessage(text: "Sorry, I couldn't find a recommendation for that.", isUser: false))
+                }
+            } catch {
+                messages.append(ChatMessage(text: "Error getting recommendation: \(error.localizedDescription)", isUser: false))
+                print("Error getting NLP recommendation: \(error.localizedDescription)")
+            }
         }
     }
 }
 
 struct AIChatView_Previews: PreviewProvider {
     static var previews: some View {
-        AIChatView()
+        AIChatView(lotName: "lot_a", recommendedStallID: .constant(nil))
     }
 }
+
