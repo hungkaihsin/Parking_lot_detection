@@ -2,6 +2,10 @@ import SwiftUI
 
 struct ParkingLotView: View {
     let lotName: String
+    
+    // 1. Receive the ViewModel from the Main Menu
+    @ObservedObject var recVM: RecommendationViewModel
+    
     @State private var stalls: [Stall] = []
     @State private var imageSize: CGSize = .zero
     
@@ -24,10 +28,12 @@ struct ParkingLotView: View {
                     }
                 )
             
+            // 2. Pass the recommended ID for highlighting
             StallsOverlayView(
                 stalls: stalls,
                 imageSize: imageSize,
-                originalImageSize: originalImageSizes[lotName] ?? .zero
+                originalImageSize: originalImageSizes[lotName] ?? .zero,
+                recommendedStallID: recVM.recommendedStallID
             )
         }
         .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
@@ -46,18 +52,24 @@ struct ParkingLotView: View {
         let stalls: [Stall]
         let imageSize: CGSize
         let originalImageSize: CGSize
+        let recommendedStallID: String?
 
         var body: some View {
             ForEach(stalls) { stall in
-                let fillColor = Color.gray.opacity(0.4)
-                let strokeColor = Color.gray
+                let isRecommended = stall.id == recommendedStallID
+                
+                // Yellow if recommended, Gray if normal
+                let fillColor = isRecommended ? Color.yellow.opacity(0.6) : Color.gray.opacity(0.4)
+                let strokeColor = isRecommended ? Color.yellow : Color.gray
+                let lineWidth = isRecommended ? 4.0 : 1.0
                 
                 stallPath(for: stall)
                     .fill(fillColor)
                     .overlay(
                         stallPath(for: stall)
-                            .stroke(strokeColor, lineWidth: 1.0)
+                            .stroke(strokeColor, lineWidth: lineWidth)
                     )
+                    .zIndex(isRecommended ? 1 : 0) // Draw on top
             }
         }
 
@@ -100,7 +112,6 @@ struct ParkingLotView: View {
         guard let url = Bundle.main.url(forResource: filename.replacingOccurrences(of: ".geojson", with: ""), withExtension: "geojson") else {
             throw NSError(domain: "ParkingLotView", code: 1, userInfo: [NSLocalizedDescriptionKey: "GeoJSON file not found: \(filename)"])
         }
-
         let data = try Data(contentsOf: url)
         let geoJSON = try JSONDecoder().decode(FeatureCollection.self, from: data)
 
@@ -110,10 +121,11 @@ struct ParkingLotView: View {
                let id = properties["id"] as? String,
                case .polygon(let coordinateArray) = feature.geometry.coordinates {
                 
-                let stallFeatures = StallFeatures(isEV: (properties["is_ev"] as? Bool) ?? false,
-                                                  isADA: (properties["is_ada"] as? Bool) ?? false,
-                                                  size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown")
-                
+                let stallFeatures = StallFeatures(
+                    isEV: (properties["is_ev"] as? Bool) ?? false,
+                    isADA: (properties["is_ada"] as? Bool) ?? false,
+                    size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown"
+                )
                 let stall = Stall(id: id, features: stallFeatures, coordinates: coordinateArray[0])
                 loadedStalls.append(stall)
             }
@@ -123,6 +135,23 @@ struct ParkingLotView: View {
 }
 
 // MARK: - Helper Structs for GeoJSON Decoding
+// These must be present for loadLotData to work!
+
+struct FeatureCollection: Decodable {
+    let type: String
+    let features: [Feature]
+}
+
+struct Feature: Decodable {
+    let type: String
+    let geometry: Geometry
+    let properties: AnyCodable?
+}
+
+struct Geometry: Decodable {
+    let type: String
+    let coordinates: GeometryCoordinates
+}
 
 enum GeometryCoordinates: Decodable {
     case point([Double])
@@ -142,134 +171,57 @@ enum GeometryCoordinates: Decodable {
     }
 }
 
-struct FeatureCollection: Decodable {
-    let type: String
-    let features: [Feature]
-}
-
-struct Feature: Decodable {
-    let type: String
-    let geometry: Geometry
-    let properties: AnyCodable?
-}
-
-struct Geometry: Decodable {
-    let type: String
-    let coordinates: GeometryCoordinates
-}
-
 struct AnyCodable: Codable {
-
     var value: Any
 
-    
-
     init(_ value: Any) {
-
         self.value = value
-
     }
-
-    
 
     init(from decoder: Decoder) throws {
-
         let container = try decoder.singleValueContainer()
-
-
-
         if container.decodeNil() {
-
             value = NSNull()
-
             return
-
         }
-
-        
-
         if let string = try? container.decode(String.self) {
-
             value = string
-
         } else if let int = try? container.decode(Int.self) {
-
             value = int
-
         } else if let double = try? container.decode(Double.self) {
-
             value = double
-
         } else if let bool = try? container.decode(Bool.self) {
-
             value = bool
-
         } else if let array = try? container.decode([AnyCodable].self) {
-
             value = array.map { $0.value }
-
         } else if let dictionary = try? container.decode([String: AnyCodable].self) {
-
             value = dictionary.mapValues { $0.value }
-
         } else {
-
             throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type found in JSON properties"))
-
         }
-
     }
-
-
 
     func encode(to encoder: Encoder) throws {
-
         var container = encoder.singleValueContainer()
-
-        
-
         if value is NSNull {
-
             try container.encodeNil()
-
             return
-
         }
-
-        
-
         if let string = value as? String {
-
             try container.encode(string)
-
         } else if let int = value as? Int {
-
             try container.encode(int)
-
         } else if let double = value as? Double {
-
             try container.encode(double)
-
         } else if let bool = value as? Bool {
-
             try container.encode(bool)
-
         } else if let array = value as? [Any] {
-
             try container.encode(array.map(AnyCodable.init))
-
         } else if let dictionary = value as? [String: Any] {
-
             try container.encode(dictionary.mapValues(AnyCodable.init))
-
         } else {
-
             let context = EncodingError.Context(codingPath: container.codingPath, debugDescription: "Unsupported type")
-
             throw EncodingError.invalidValue(value, context)
-
         }
-
     }
-
 }
