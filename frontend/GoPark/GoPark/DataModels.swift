@@ -16,6 +16,27 @@ struct Stall: Codable, Identifiable {
     let id: String
     let features: StallFeatures
     let coordinates: [[Double]]
+    var isOccupied: Bool = false
+    
+    enum CodingKeys: String, CodingKey {
+        case id, features, coordinates
+        case isOccupied = "is_occupied"
+    }
+    
+    init(id: String, features: StallFeatures, coordinates: [[Double]], isOccupied: Bool = false) {
+        self.id = id
+        self.features = features
+        self.coordinates = coordinates
+        self.isOccupied = isOccupied
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        features = try container.decode(StallFeatures.self, forKey: .features)
+        coordinates = try container.decode([[Double]].self, forKey: .coordinates)
+        isOccupied = try container.decodeIfPresent(Bool.self, forKey: .isOccupied) ?? false
+    }
 }
 
 struct StallStatus: Codable, Identifiable {
@@ -83,5 +104,42 @@ struct RecommendationRequest: Codable {
         case connector
         case sizeClass = "size_class"
         case near, buffered
+    }
+}
+
+struct APIStall: Codable {
+    let id: String
+    let isOccupied: Bool
+    let x: Double?
+    let y: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case isOccupied = "is_occupied"
+        case x, y
+    }
+}
+
+struct Arrival: Codable {
+    let stallId: String
+    let size: String
+    let x: Double?
+    let y: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case stallId = "stall_id"
+        case size, x, y
+    }
+}
+
+struct PredictionResponse: Codable {
+    let occupiedCount: Int
+    let arrivals: [Arrival]
+    let currentDetections: [Arrival]? // Use Arrival struct since it has the same shape
+    
+    enum CodingKeys: String, CodingKey {
+        case occupiedCount = "occupied_stalls_count"
+        case arrivals
+        case currentDetections = "current_detections"
     }
 }

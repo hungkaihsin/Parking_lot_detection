@@ -143,7 +143,11 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
                     app_logger.info(f"Checking stall {stall_id} with polygon: {stall_polygon.wkt}")
                     if stall_polygon.contains(detection_point):
                         app_logger.info(f"Detection point {detection_point.wkt} IS contained in stall {stall_id}")
-                        occupancy_data[stall_id] = {"size": size_class}
+                        occupancy_data[stall_id] = {
+                            "size": size_class,
+                            "x": center_x_orig,
+                            "y": center_y_orig
+                        }
                         break
                     else:
                         app_logger.info(f"Detection point {detection_point.wkt} NOT contained in stall {stall_id}")

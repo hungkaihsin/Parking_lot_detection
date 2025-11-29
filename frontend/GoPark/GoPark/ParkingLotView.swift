@@ -8,6 +8,7 @@ struct ParkingLotView: View {
     
     @State private var stalls: [Stall] = []
     @State private var imageSize: CGSize = .zero
+    @State private var isPredicting: Bool = false
     
     private let originalImageSizes: [String: CGSize] = [
         "lot_a": CGSize(width: 234, height: 433),
@@ -35,17 +36,184 @@ struct ParkingLotView: View {
                 originalImageSize: originalImageSizes[lotName] ?? .zero,
                 recommendedStallID: recVM.recommendedStallID
             )
+            
+            if isPredicting {
+                ProgressView("Updating Live Status...")
+                    .padding()
+                    .background(Color(UIColor.systemBackground).opacity(0.8))
+                    .cornerRadius(10)
+            }
         }
         .navigationTitle(lotName.replacingOccurrences(of: "_", with: " ").capitalized)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: triggerPrediction) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isPredicting)
+            }
+        }
         .onAppear {
             Task {
                 do {
-                    self.stalls = try await loadLotData(from: "\(lotName)_data.geojson")
+                    print("--- ParkingLotView onAppear ---")
+                    // 1. Load local layout
+                    var loadedStalls = try await loadLotData(from: "\(lotName)_data.geojson")
+                    self.stalls = loadedStalls
+                    print("Loaded \(self.stalls.count) local stalls.")
+                    
+                    // 2. Trigger "Live" Prediction automatically
+                    print("Auto-triggering prediction...")
+                    triggerPrediction()
+                    
                 } catch {
-                    print("Error loading lot data: \(error)")
+                    print("Error loading lot data or status: \(error)")
                 }
             }
         }
+        .onDisappear {
+            // Clear the recommendation when leaving the view so it doesn't persist.
+            recVM.recommendedStallID = nil
+            recVM.recommendedLotID = nil
+        }
+    }
+    
+    private func triggerPrediction() {
+        guard let uiImage = UIImage(named: lotName),
+              let imageData = uiImage.jpegData(compressionQuality: 0.8) else {
+            print("Could not load image for prediction")
+            return
+        }
+        
+        isPredicting = true
+        print("Sending prediction request for \(lotName)...")
+        Task {
+            do {
+                let predictionResponse = try await NetworkManager.shared.triggerPrediction(lotId: lotName, imageData: imageData)
+                print("Received prediction response. Occupied count: \(predictionResponse.occupiedCount)")
+                // Use the prediction response to update occupancy more accurately
+                mergePrediction(into: &self.stalls, from: predictionResponse)
+            } catch {
+                print("Prediction failed: \(error)")
+            }
+            isPredicting = false
+        }
+    }
+    
+    private func mergePrediction(into localStalls: inout [Stall], from response: PredictionResponse) {
+         // Reset all to free first to ensure we only show currently detected cars
+        for i in 0..<localStalls.count {
+            localStalls[i].isOccupied = false
+        }
+        
+        // Use currentDetections if available (full state), otherwise fallback to arrivals (events)
+        let detections = response.currentDetections ?? response.arrivals
+        print("Processing \(detections.count) detections...")
+        
+        for detection in detections {
+            // If we have coordinates, use them for precise mapping
+            if let cx = detection.x, let cy = detection.y {
+                let detectionPoint = CGPoint(x: cx, y: cy)
+                print("Checking detection at (\(cx), \(cy))")
+                
+                // Find which local stall polygon contains this point
+                if let index = localStalls.firstIndex(where: { polygon($0.coordinates, contains: detectionPoint) }) {
+                    localStalls[index].isOccupied = true
+                    print("  -> Matched to stall index \(index) (ID: \(localStalls[index].id))")
+                } else {
+                    print("  -> No matching stall found for point.")
+                }
+            } else {
+                // Fallback to ID matching if no coordinates
+                let occupiedID = detection.stallId
+                for i in 0..<localStalls.count {
+                    let localID = localStalls[i].id
+                    if localID == occupiedID {
+                        localStalls[i].isOccupied = true
+                    } else {
+                        // Check prefix match
+                        if let underscoreIndex = localID.lastIndex(of: "_") {
+                           let baseID = String(localID[..<underscoreIndex])
+                           let potentialBackendID = "\(lotName)-\(baseID)"
+                           if potentialBackendID == occupiedID {
+                               localStalls[i].isOccupied = true
+                           }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func mergeOccupancy(into localStalls: inout [Stall], from apiStalls: [APIStall]) {
+        // First, reset all occupancy
+        for i in 0..<localStalls.count {
+            localStalls[i].isOccupied = false
+        }
+        
+        // Create a set for fast ID lookup
+        let occupiedIDs = Set(apiStalls.filter { $0.isOccupied }.map { $0.id })
+        
+        for apiStall in apiStalls where apiStall.isOccupied {
+            // 1. Use coordinates for precise matching if available
+            if let cx = apiStall.x, let cy = apiStall.y {
+                let detectionPoint = CGPoint(x: cx, y: cy)
+                
+                if let index = localStalls.firstIndex(where: { polygon($0.coordinates, contains: detectionPoint) }) {
+                    localStalls[index].isOccupied = true
+                }
+                continue // Skip ID matching for this stall since coordinates were used
+            }
+            
+            // 2. Fallback: ID Matching (Old Logic)
+            let occupiedID = apiStall.id
+            
+            for i in 0..<localStalls.count {
+                // If this local stall is already marked occupied (e.g. by coordinates), skip it
+                if localStalls[i].isOccupied { continue }
+                
+                let localID = localStalls[i].id
+                
+                // Exact match
+                if localID == occupiedID {
+                    localStalls[i].isOccupied = true
+                    continue
+                }
+                
+                // Prefix match (backend "Row_A" -> frontend "Row_A_0")
+                // Only do this if we have NO coordinates at all, otherwise it's risky.
+                // Backend ID format is "{lotName}-{baseID}"
+                
+                let baseID: String
+                if let underscoreIndex = localID.lastIndex(of: "_") {
+                    baseID = String(localID[..<underscoreIndex])
+                } else {
+                    baseID = localID
+                }
+                
+                let potentialBackendID = "\(lotName)-\(baseID)"
+                
+                if potentialBackendID == occupiedID {
+                    localStalls[i].isOccupied = true
+                }
+            }
+        }
+    }
+    
+    // Helper: Point in Polygon (Ray Casting algorithm)
+    private func polygon(_ polygon: [[Double]], contains point: CGPoint) -> Bool {
+        var isInside = false
+        var j = polygon.count - 1
+        for i in 0..<polygon.count {
+            let xi = polygon[i][0], yi = polygon[i][1]
+            let xj = polygon[j][0], yj = polygon[j][1]
+            
+            let intersect = ((yi > Double(point.y)) != (yj > Double(point.y))) &&
+                (Double(point.x) < (xj - xi) * (Double(point.y) - yi) / (yj - yi) + xi)
+            if intersect { isInside = !isInside }
+            j = i
+        }
+        return isInside
     }
 
     private struct StallsOverlayView: View {
@@ -55,21 +223,44 @@ struct ParkingLotView: View {
         let recommendedStallID: String?
 
         var body: some View {
-            ForEach(stalls) { stall in
-                let isRecommended = stall.id == recommendedStallID
+            ForEach(stalls, id: \Stall.id) { stall in
+                let isRecommended = (stall.id == (recommendedStallID ?? ""))
+                let isOccupied = stall.isOccupied
                 
-                // Yellow if recommended, Gray if normal
-                let fillColor = isRecommended ? Color.yellow.opacity(0.6) : Color.gray.opacity(0.4)
-                let strokeColor = isRecommended ? Color.yellow : Color.gray
-                let lineWidth = isRecommended ? 4.0 : 1.0
+                // Colors:
+                // Recommended: Yellow (High priority)
+                // Occupied: Red (Medium priority)
+                // Free: Green/Gray (Low priority)
                 
-                stallPath(for: stall)
+                let fillColor: Color
+                let strokeColor: Color
+                let lineWidth: CGFloat
+                let zIndex: Double
+                
+                if isRecommended {
+                    fillColor = Color.yellow.opacity(0.6)
+                    strokeColor = Color.yellow
+                    lineWidth = 4.0
+                    zIndex = 2.0
+                } else if isOccupied {
+                    fillColor = Color.red.opacity(0.4)
+                    strokeColor = Color.red
+                    lineWidth = 1.0
+                    zIndex = 1.0
+                } else {
+                    fillColor = Color.green.opacity(0.3)
+                    strokeColor = Color.green
+                    lineWidth = 1.0
+                    zIndex = 0.0
+                }
+                
+                return stallPath(for: stall)
                     .fill(fillColor)
                     .overlay(
                         stallPath(for: stall)
                             .stroke(strokeColor, lineWidth: lineWidth)
                     )
-                    .zIndex(isRecommended ? 1 : 0) // Draw on top
+                    .zIndex(zIndex) // Draw on top
             }
         }
 
@@ -127,10 +318,55 @@ struct ParkingLotView: View {
                     size: (properties["width_class"] as? Int).map { String($0) } ?? "unknown"
                 )
                 let stall = Stall(id: id, features: stallFeatures, coordinates: coordinateArray[0])
-                loadedStalls.append(stall)
+                
+                let slicedStalls = sliceRowIntoSpots(stall)
+                loadedStalls.append(contentsOf: slicedStalls)
             }
         }
         return loadedStalls
+    }
+
+    private func sliceRowIntoSpots(_ originalStall: Stall, pixelsPerSpot: CGFloat = 38.0) -> [Stall] {
+        let coords = originalStall.coordinates
+        guard coords.count >= 4 else { return [originalStall] }
+        
+        // Assume points: 0=TopLeft, 1=TopRight, 2=BottomRight, 3=BottomLeft
+        let p0 = CGPoint(x: coords[0][0], y: coords[0][1])
+        let p1 = CGPoint(x: coords[1][0], y: coords[1][1])
+        let p2 = CGPoint(x: coords[2][0], y: coords[2][1])
+        let p3 = CGPoint(x: coords[3][0], y: coords[3][1])
+        
+        let height = hypot(p3.x - p0.x, p3.y - p0.y)
+        
+        // If it's already small, don't slice
+        if height < pixelsPerSpot * 1.5 { return [originalStall] }
+        
+        let numberOfSpots = Int(round(height / pixelsPerSpot))
+        var newStalls: [Stall] = []
+        
+        for i in 0..<numberOfSpots {
+            let progressTop = CGFloat(i) / CGFloat(numberOfSpots)
+            let progressBottom = CGFloat(i + 1) / CGFloat(numberOfSpots)
+            
+            let leftTop = interpolate(start: p0, end: p3, progress: progressTop)
+            let leftBot = interpolate(start: p0, end: p3, progress: progressBottom)
+            let rightTop = interpolate(start: p1, end: p2, progress: progressTop)
+            let rightBot = interpolate(start: p1, end: p2, progress: progressBottom)
+            
+            let newCoords = [
+                [Double(leftTop.x), Double(leftTop.y)], [Double(rightTop.x), Double(rightTop.y)],
+                [Double(rightBot.x), Double(rightBot.y)], [Double(leftBot.x), Double(leftBot.y)],
+                [Double(leftTop.x), Double(leftTop.y)]
+            ]
+            
+            let newStall = Stall(id: "\(originalStall.id)_\(i)", features: originalStall.features, coordinates: newCoords)
+            newStalls.append(newStall)
+        }
+        return newStalls
+    }
+
+    private func interpolate(start: CGPoint, end: CGPoint, progress: CGFloat) -> CGPoint {
+        return CGPoint(x: start.x + (end.x - start.x) * progress, y: start.y + (end.y - start.y) * progress)
     }
 }
 
