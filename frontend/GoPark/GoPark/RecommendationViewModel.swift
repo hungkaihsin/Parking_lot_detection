@@ -12,6 +12,7 @@ class RecommendationViewModel: ObservableObject {
     @Published var recommendedStallID: String?
     @Published var recommendedLotID: String?
     @Published var aiResponseReason: String?
+    @Published var shouldNavigate: Bool = false
 
     func getRecommendation(lotName: String, vehicleType: String, wantsEV: Bool) async {
         // Keeps existing logic for ProfileView compatibility (if used)
@@ -39,6 +40,7 @@ class RecommendationViewModel: ObservableObject {
         self.aiResponseReason = nil
         self.recommendedStallID = nil
         self.recommendedLotID = nil
+        self.shouldNavigate = false
         
         let requestBody = RecommendationRequest(
             query: query,
@@ -54,42 +56,21 @@ class RecommendationViewModel: ObservableObject {
         
         do {
             let fetchedRecommendations = try await NetworkManager.shared.getRecommendations(requestBody: requestBody)
-            
+            self.recommendations = fetchedRecommendations
+
             if fetchedRecommendations.isEmpty {
                 self.aiResponseReason = "I'm sorry, I looked through all the lots but couldn't find a spot that matches your criteria."
             } else {
                 // 1. Take the Top 3 Recommendations
                 let topPicks = fetchedRecommendations.prefix(3)
                 
-                // 2. Build a Friendly, Structured Response
-                var responseString = "I found **\(topPicks.count) available spots** for you:\n"
-                
-                for rec in topPicks {
-                    // Logic to format "lot_b" or "lotb" into "Lot B"
-                    var niceLotName = rec.lotId.replacingOccurrences(of: "_", with: " ").capitalized
-                    
-                    // Specific fix for "Lotb" -> "Lot B"
-                    if niceLotName.lowercased().hasPrefix("lot") && !niceLotName.contains(" ") && niceLotName.count > 3 {
-                        let index = niceLotName.index(niceLotName.startIndex, offsetBy: 3)
-                        niceLotName.insert(" ", at: index)
-                    }
-                    
-                    let shortId = String(rec.stallId.suffix(3)) // Last 3 digits for readability
-                    let reasons = rec.reasons.joined(separator: ", ")
-                    
-                    // Bullet Point Format using Markdown
-                    responseString += "\n• **\(niceLotName)** (Spot ...\(shortId))\n   _\(reasons)_"
-                }
-                
-                // 3. Highlight the #1 Best Spot
+                // 2. Build a simple, friendly response string without the list
+                let spotCount = topPicks.count
+                let spotsNoun = spotCount == 1 ? "spot" : "spots"
+                let responseString = "I found **\(spotCount) matching \(spotsNoun)** for you. Here are the best options:"
+
+                // 3. Set the #1 Best Spot for default navigation if user doesn't pick one
                 if let best = topPicks.first {
-                    var bestLotName = best.lotId.replacingOccurrences(of: "_", with: " ").capitalized
-                    if bestLotName.lowercased().hasPrefix("lot") && !bestLotName.contains(" ") && bestLotName.count > 3 {
-                         bestLotName.insert(" ", at: bestLotName.index(bestLotName.startIndex, offsetBy: 3))
-                    }
-                    
-                    responseString += "\n\nTap close to see the best spot in **\(bestLotName)**!"
-                    
                     self.recommendedStallID = best.stallId
                     self.recommendedLotID = best.lotId
                 }
