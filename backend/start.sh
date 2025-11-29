@@ -25,12 +25,7 @@ echo "Applying database migrations..."
 alembic upgrade head
 echo "Database migrations applied."
 
-echo "Loading parking lot data..."
-python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_a_data.geojson'))") --lot-id LotA
-python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_b_data.geojson'))") --lot-id LotB
-python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_c_data.geojson'))") --lot-id LotC
-python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_d_data.geojson'))") --lot-id LotD
-python scripts/load_stalls.py --file $(python -c "import os; print(os.path.join('data', 'lot_e_data.geojson'))") --lot-id LotE
-echo "Data loading complete."
+# Run the idempotent script to initialize parking lot data
+/app/init_stalls.sh
 
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
