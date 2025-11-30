@@ -23,6 +23,7 @@ struct ParkingLotView: View {
             Image(lotName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
+                .opacity(0) // Make the image transparent
                 .background(
                     GeometryReader { geometry in
                         Color.clear.onAppear { self.imageSize = geometry.size }

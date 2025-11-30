@@ -33,6 +33,44 @@ class RecommendationViewModel: ObservableObject {
         self.isLoading = false
     }
     
+    // MARK: - Fetch Top Recommendations (No Query)
+    func fetchTopRecommendations(uid: String?) async {
+        self.isLoading = true
+        self.errorMessage = nil
+        
+        // 1. Default values
+        var sizeClass = 1 // Default to Midsize
+        var isEv: Bool? = nil
+        
+        // 2. Load from Profile if UID is present
+        if let uid = uid {
+            let defaults = UserDefaults.standard
+            let savedType = defaults.string(forKey: "\(uid)_userVehicleType") ?? "Midsize"
+            sizeClass = vehicleTypeToSizeClass(savedType)
+            
+            // Only set isEv to true if the user explicitly wants it. 
+            // If false, we pass nil to allow both EV and non-EV spots (unless strict logic dictates otherwise).
+            // For now, let's respect the user's "I need EV" flag as a strict filter.
+            if defaults.bool(forKey: "\(uid)_userWantsEV") {
+                isEv = true
+            }
+        }
+        
+        // Default request for "general" recommendations, but respecting Profile
+        let requestBody = RecommendationRequest(
+            query: nil, isAda: nil, isEv: isEv, connector: nil, sizeClass: sizeClass, near: true, buffered: nil
+        )
+        
+        do {
+            let fetchedRecommendations = try await NetworkManager.shared.getRecommendations(requestBody: requestBody)
+            self.recommendations = fetchedRecommendations
+        } catch {
+            print(">>> Fetch Top Recs Error: \(error)")
+            // Don't show an error message to the user for background fetches, just log it
+        }
+        self.isLoading = false
+    }
+    
     // MARK: - Global AI Search (Natural Language)
     func getNLPRecommendation(query: String) async {
         self.isLoading = true
