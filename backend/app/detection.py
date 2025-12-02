@@ -25,9 +25,9 @@ if os.path.exists(MODEL_PATH):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Re-create the model architecture
-    size_classifier = vision_models.efficientnet_b0(weights=None)
-    num_ftrs = size_classifier.classifier[1].in_features
-    size_classifier.classifier[1] = torch.nn.Linear(num_ftrs, NUM_CLASSES)
+    size_classifier = vision_models.resnet18(weights=None)
+    num_ftrs = size_classifier.fc.in_features
+    size_classifier.fc = torch.nn.Linear(num_ftrs, NUM_CLASSES)
     
     # Load the trained weights
     size_classifier.load_state_dict(torch.load(MODEL_PATH, map_location=device))

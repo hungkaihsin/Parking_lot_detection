@@ -30,13 +30,23 @@ def process_video(model_path, video_path, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
+    total_detections = 0
+    frame_count = 0
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
+        frame_count += 1
+
         # Run YOLO detection
         results = model(frame)
+        
+        # Count detections
+        detections_in_frame = len(results[0].boxes)
+        total_detections += detections_in_frame
+        # print(f"Frame {frame_count}: {detections_in_frame} detections") # Optional: Comment out for less noise
 
         # Get the annotated frame
         annotated_frame = results[0].plot()
@@ -48,7 +58,11 @@ def process_video(model_path, video_path, output_path):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+    
+    avg_detections = total_detections / frame_count if frame_count > 0 else 0
     print(f"Processed video saved to {output_path}")
+    print(f"Total Frames: {frame_count}")
+    print(f"Average Detections per Frame: {avg_detections:.2f}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a video with a YOLO model.")
