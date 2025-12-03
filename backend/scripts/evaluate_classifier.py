@@ -2,6 +2,7 @@
 import argparse
 import pandas as pd
 import torch
+import time
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models, transforms
 from PIL import Image
@@ -40,16 +41,40 @@ def evaluate_classifier(model, dataloader, device, num_classes):
     all_preds = []
     all_labels = []
     
+    total_inference_time = 0.0
+    total_images = 0
+
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
             labels = labels.to(device)
             
+            # Start timing
+            if device.type == 'mps':
+                torch.mps.synchronize()
+            elif device.type == 'cuda':
+                torch.cuda.synchronize()
+            
+            start_time = time.time()
             outputs = model(inputs)
+            
+            # End timing
+            if device.type == 'mps':
+                torch.mps.synchronize()
+            elif device.type == 'cuda':
+                torch.cuda.synchronize()
+            
+            end_time = time.time()
+            
+            total_inference_time += (end_time - start_time)
+            total_images += inputs.size(0)
+
             _, preds = torch.max(outputs, 1)
             
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
+
+    avg_inference_time_ms = (total_inference_time / total_images) * 1000 if total_images > 0 else 0
 
     # Overall metrics
     accuracy = accuracy_score(all_labels, all_preds)
@@ -59,6 +84,7 @@ def evaluate_classifier(model, dataloader, device, num_classes):
     print(f"Macro-F1 Score: {f1:.4f}")
     print(f"Macro-Precision: {precision:.4f}")
     print(f"Macro-Recall: {recall:.4f}")
+    print(f"Average Inference Time per Image: {avg_inference_time_ms:.2f} ms")
 
     # Per-class metrics
     p_class, r_class, f1_class, _ = precision_recall_fscore_support(all_labels, all_preds, average=None, labels=range(num_classes))
@@ -111,16 +137,27 @@ def main():
     print(f"Loading model architecture {args.model_name}...")
     if args.model_name == 'efficientnet_b1':
         model = models.efficientnet_b1(weights=None)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     elif args.model_name == 'efficientnet_b2':
         model = models.efficientnet_b2(weights=None)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     elif args.model_name == 'efficientnet_b3':
         model = models.efficientnet_b3(weights=None)
-    else:
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+    elif args.model_name == 'resnet18':
+        model = models.resnet18(weights=None)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)
+    else: # Default to efficientnet_b0
         model = models.efficientnet_b0(weights=None)
-
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
+    model = model.to(device)
+
     # Load the trained weights
     print(f"Loading trained weights from {args.model_path}")
     model.load_state_dict(torch.load(args.model_path, map_location=device))

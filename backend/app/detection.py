@@ -25,9 +25,9 @@ if os.path.exists(MODEL_PATH):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Re-create the model architecture
-    size_classifier = vision_models.efficientnet_b0(weights=None)
-    num_ftrs = size_classifier.classifier[1].in_features
-    size_classifier.classifier[1] = torch.nn.Linear(num_ftrs, NUM_CLASSES)
+    size_classifier = vision_models.resnet18(weights=None)
+    num_ftrs = size_classifier.fc.in_features
+    size_classifier.fc = torch.nn.Linear(num_ftrs, NUM_CLASSES)
     
     # Load the trained weights
     size_classifier.load_state_dict(torch.load(MODEL_PATH, map_location=device))
@@ -143,7 +143,11 @@ def get_occupied_stalls(model: YOLO, image_bytes: bytes, stalls: list[models.Sta
                     app_logger.info(f"Checking stall {stall_id} with polygon: {stall_polygon.wkt}")
                     if stall_polygon.contains(detection_point):
                         app_logger.info(f"Detection point {detection_point.wkt} IS contained in stall {stall_id}")
-                        occupancy_data[stall_id] = {"size": size_class}
+                        occupancy_data[stall_id] = {
+                            "size": size_class,
+                            "x": center_x_orig,
+                            "y": center_y_orig
+                        }
                         break
                     else:
                         app_logger.info(f"Detection point {detection_point.wkt} NOT contained in stall {stall_id}")

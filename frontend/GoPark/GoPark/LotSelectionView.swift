@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 struct LotSelectionView: View {
     @EnvironmentObject var authManager: AuthManager
@@ -12,10 +13,28 @@ struct LotSelectionView: View {
     @State private var showSideMenu = false
     @State private var showProfile = false
     @State private var showTestPage = false
+    
+    // 3. State for programmatic navigation (isActive pattern)
+    @State private var isLotAActive = false
+    @State private var isLotBActive = false
+    @State private var isLotCActive = false
+    @State private var isLotDActive = false
+    @State private var isLotEActive = false
 
     var body: some View {
         NavigationView {
             ZStack {
+                // Hidden Navigation Links for Programmatic Navigation
+                // Placing them here ensures they are always part of the view hierarchy
+                VStack {
+                    NavigationLink(destination: ParkingLotView(lotName: "lot_a", recVM: recVM), isActive: $isLotAActive) { EmptyView() }
+                    NavigationLink(destination: ParkingLotView(lotName: "lot_b", recVM: recVM), isActive: $isLotBActive) { EmptyView() }
+                    NavigationLink(destination: ParkingLotView(lotName: "lot_c", recVM: recVM), isActive: $isLotCActive) { EmptyView() }
+                    NavigationLink(destination: ParkingLotView(lotName: "lot_d", recVM: recVM), isActive: $isLotDActive) { EmptyView() }
+                    NavigationLink(destination: ParkingLotView(lotName: "lot_e", recVM: recVM), isActive: $isLotEActive) { EmptyView() }
+                }
+                .hidden()
+
                 List {
                     // Section 1: The AI Tool
                     Section(header: Text("AI Assistant")) {
@@ -36,23 +55,76 @@ struct LotSelectionView: View {
                         }
                     }
                     
-                    // Section 2: The Parking Lots
+                    // Section 2: Global Recommendations
+                    Section(header: Text("Recommended for You")) {
+                        if recVM.isLoading {
+                            HStack {
+                                Spacer()
+                                ProgressView("Finding best spots...")
+                                Spacer()
+                            }
+                        } else if recVM.recommendations.isEmpty {
+                            Text("No specific recommendations right now.")
+                                .foregroundColor(.gray)
+                                .italic()
+                        } else {
+                            ForEach(recVM.recommendations.prefix(3)) { rec in
+                                Button(action: {
+                                    // Set target and trigger navigation
+                                    recVM.recommendedLotID = rec.lotId
+                                    recVM.recommendedStallID = rec.stallId
+                                    recVM.shouldNavigate = true
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text("Spot \(rec.stallId) (\(rec.lotId.replacingOccurrences(of: "_", with: " ").capitalized))")
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                            
+                                            if !rec.reasons.isEmpty {
+                                                Text(rec.reasons.joined(separator: " • "))
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                    .lineLimit(1)
+                                            }
+                                        }
+                                        Spacer()
+                                        // Score Badge
+                                        Text("\(Int(rec.score))%")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .padding(6)
+                                            .background(Color.green.opacity(0.2))
+                                            .foregroundColor(.green)
+                                            .cornerRadius(8)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Section 3: The Parking Lots
                     Section(header: Text("Available Parking Lots")) {
-                        // FIX: We now pass 'recVM' to every ParkingLotView so it knows what to highlight
-                        NavigationLink(destination: ParkingLotView(lotName: "lot_a", recVM: recVM)) {
-                            Text("Parking Lot A")
+                        // We use Buttons here that trigger the same programmatic navigation logic
+                        // This provides a consistent experience and avoids issues with nested NavigationLinks
+                        Button(action: { isLotAActive = true }) {
+                            Text("Parking Lot A").foregroundColor(.primary)
                         }
-                        NavigationLink(destination: ParkingLotView(lotName: "lot_b", recVM: recVM)) {
-                            Text("Parking Lot B")
+                        Button(action: { isLotBActive = true }) {
+                            Text("Parking Lot B").foregroundColor(.primary)
                         }
-                        NavigationLink(destination: ParkingLotView(lotName: "lot_c", recVM: recVM)) {
-                            Text("Parking Lot C")
+                        Button(action: { isLotCActive = true }) {
+                            Text("Parking Lot C").foregroundColor(.primary)
                         }
-                        NavigationLink(destination: ParkingLotView(lotName: "lot_d", recVM: recVM)) {
-                            Text("Parking Lot D")
+                        Button(action: { isLotDActive = true }) {
+                            Text("Parking Lot D").foregroundColor(.primary)
                         }
-                        NavigationLink(destination: ParkingLotView(lotName: "lot_e", recVM: recVM)) {
-                            Text("Parking Lot E")
+                        Button(action: { isLotEActive = true }) {
+                            Text("Parking Lot E").foregroundColor(.primary)
                         }
                     }
                 }
@@ -66,7 +138,12 @@ struct LotSelectionView: View {
                     }
                 }
                 // Existing Sheets
-                .sheet(isPresented: $showProfile) {
+                .sheet(isPresented: $showProfile, onDismiss: {
+                    // REFRESH RECOMMENDATIONS WHEN PROFILE IS CLOSED
+                    Task {
+                        await recVM.fetchTopRecommendations(uid: authManager.userSession?.uid)
+                    }
+                }) {
                     ProfileView()
                 }
                 .sheet(isPresented: $showTestPage) {
@@ -75,6 +152,39 @@ struct LotSelectionView: View {
                 // 3. New Sheet for AI Chat
                 .sheet(isPresented: $showChat) {
                     AIChatView(recVM: recVM, isPresented: $showChat)
+                }
+                // 4. Trigger navigation when the VM's flag is set
+                .onChange(of: recVM.shouldNavigate) { shouldNavigate in // Capture new value of shouldNavigate
+                    print("--- DEBUG: LotSelectionView onChange detected ---")
+                    print("recVM.shouldNavigate is: \(shouldNavigate)") // Use captured value
+                    print("recVM.recommendedLotID is: \(recVM.recommendedLotID ?? "nil")")
+                    
+                    if shouldNavigate, let recommendedLot = recVM.recommendedLotID { // Use captured value
+                        // The sheet has been dismissed. Now, trigger the correct NavigationLink.
+                        DispatchQueue.main.async {
+                            print("Dispatching navigation to \(recommendedLot)")
+                            let normalizedLotID = recommendedLot.lowercased().replacingOccurrences(of: " ", with: "_")
+                            
+                            switch normalizedLotID {
+                            case "lot_a", "lota": isLotAActive = true
+                            case "lot_b", "lotb": isLotBActive = true
+                            case "lot_c", "lotc": isLotCActive = true
+                            case "lot_d", "lotd": isLotDActive = true
+                            case "lot_e", "lote": isLotEActive = true
+                            default:
+                                print("Error: normalizedLotID '\(normalizedLotID)' not recognized!")
+                                break
+                            }
+                            // Reset the flag immediately after use.
+                            recVM.shouldNavigate = false
+                        }
+                    }
+                    print("---------------------------------------------")
+                }
+                .onAppear {
+                    Task {
+                        await recVM.fetchTopRecommendations(uid: authManager.userSession?.uid)
+                    }
                 }
             }
         }

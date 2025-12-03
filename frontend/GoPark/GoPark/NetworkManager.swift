@@ -26,6 +26,37 @@ final class NetworkManager {
         return response.recommendations
     }
 
+    func fetchSpots(lotId: String) async throws -> [APIStall] {
+        let url = baseURL.appendingPathComponent("lots/\(lotId)/spots")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode([APIStall].self, from: data)
+    }
+
+    func triggerPrediction(lotId: String, imageData: Data) async throws -> PredictionResponse {
+        let url = baseURL.appendingPathComponent("lots/\(lotId)/predict")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        // Add image data
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"lot_image.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONDecoder().decode(PredictionResponse.self, from: data)
+    }
+
     // This function will be added back later if needed, but for now
     // ParkingLotView loads from local files.
     // func getLotLayout(lotId: String) async throws -> [Stall] {

@@ -162,15 +162,24 @@ def main():
     print(f"Loading pre-trained {args.model_name} model...")
     if args.model_name == 'efficientnet_b1':
         model = models.efficientnet_b1(weights=models.EfficientNet_B1_Weights.DEFAULT)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     elif args.model_name == 'efficientnet_b2':
         model = models.efficientnet_b2(weights=models.EfficientNet_B2_Weights.DEFAULT)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     elif args.model_name == 'efficientnet_b3':
         model = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.DEFAULT)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+    elif args.model_name == 'resnet18':
+        model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)
     else:
         model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
-    
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
     model = model.to(device)
 
