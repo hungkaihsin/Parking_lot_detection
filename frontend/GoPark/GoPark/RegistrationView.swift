@@ -80,6 +80,7 @@ struct RegistrationView: View {
                         .stroke(Color.gray, lineWidth: 0.5)
                 )
                 .padding(.horizontal)
+                .textInputAutocapitalization(.never)
 
             TextField("Email", text: $email)
                 .padding()
@@ -91,6 +92,7 @@ struct RegistrationView: View {
                 )
                 .padding(.horizontal)
                 .padding(.top, 10)
+                .textInputAutocapitalization(.never)
 
             SecureField("Password", text: $password)
                 .padding()
@@ -102,6 +104,7 @@ struct RegistrationView: View {
                 )
                 .padding(.horizontal)
                 .padding(.top, 10)
+                .textInputAutocapitalization(.never)
 
             Button(action: {
                 print("RegistrationView: 'Sign Up' button tapped.")

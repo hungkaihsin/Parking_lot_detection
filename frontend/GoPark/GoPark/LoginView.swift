@@ -27,6 +27,7 @@ struct LoginView: View {
                         .stroke(Color.gray, lineWidth: 0.5)
                 )
                 .padding(.horizontal)
+                .textInputAutocapitalization(.never)
 
             SecureField("Password", text: $password)
                 .padding()
@@ -38,6 +39,7 @@ struct LoginView: View {
                 )
                 .padding(.horizontal)
                 .padding(.top, 10)
+                .textInputAutocapitalization(.never)
 
             Button(action: {
                 // Google Sign-in Action
