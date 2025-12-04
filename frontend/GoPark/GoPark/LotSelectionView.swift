@@ -12,7 +12,7 @@ struct LotSelectionView: View {
     
     @State private var showSideMenu = false
     @State private var showProfile = false
-    @State private var showTestPage = false
+    // REMOVED: @State private var showTestPage = false
     
     // 3. State for programmatic navigation (isActive pattern)
     @State private var isLotAActive = false
@@ -25,7 +25,6 @@ struct LotSelectionView: View {
         NavigationView {
             ZStack {
                 // Hidden Navigation Links for Programmatic Navigation
-                // Placing them here ensures they are always part of the view hierarchy
                 VStack {
                     NavigationLink(destination: ParkingLotView(lotName: "lot_a", recVM: recVM), isActive: $isLotAActive) { EmptyView() }
                     NavigationLink(destination: ParkingLotView(lotName: "lot_b", recVM: recVM), isActive: $isLotBActive) { EmptyView() }
@@ -97,7 +96,7 @@ struct LotSelectionView: View {
                                             .background(Color.green.opacity(0.2))
                                             .foregroundColor(.green)
                                             .cornerRadius(8)
-                                        
+                                            
                                         Image(systemName: "chevron.right")
                                             .font(.caption)
                                             .foregroundColor(.gray)
@@ -109,8 +108,6 @@ struct LotSelectionView: View {
                     
                     // Section 3: The Parking Lots
                     Section(header: Text("Available Parking Lots")) {
-                        // We use Buttons here that trigger the same programmatic navigation logic
-                        // This provides a consistent experience and avoids issues with nested NavigationLinks
                         Button(action: { isLotAActive = true }) {
                             Text("Parking Lot A").foregroundColor(.primary)
                         }
@@ -139,28 +136,24 @@ struct LotSelectionView: View {
                 }
                 // Existing Sheets
                 .sheet(isPresented: $showProfile, onDismiss: {
-                    // REFRESH RECOMMENDATIONS WHEN PROFILE IS CLOSED
                     Task {
                         await recVM.fetchTopRecommendations(uid: authManager.userSession?.uid)
                     }
                 }) {
                     ProfileView()
                 }
-                .sheet(isPresented: $showTestPage) {
-                    DanielTestView()
-                }
+                // REMOVED: .sheet(isPresented: $showTestPage) { ... }
+                
                 // 3. New Sheet for AI Chat
                 .sheet(isPresented: $showChat) {
                     AIChatView(recVM: recVM, isPresented: $showChat)
                 }
                 // 4. Trigger navigation when the VM's flag is set
-                .onChange(of: recVM.shouldNavigate) { shouldNavigate in // Capture new value of shouldNavigate
+                .onChange(of: recVM.shouldNavigate) { shouldNavigate in
                     print("--- DEBUG: LotSelectionView onChange detected ---")
-                    print("recVM.shouldNavigate is: \(shouldNavigate)") // Use captured value
-                    print("recVM.recommendedLotID is: \(recVM.recommendedLotID ?? "nil")")
+                    print("recVM.shouldNavigate is: \(shouldNavigate)")
                     
-                    if shouldNavigate, let recommendedLot = recVM.recommendedLotID { // Use captured value
-                        // The sheet has been dismissed. Now, trigger the correct NavigationLink.
+                    if shouldNavigate, let recommendedLot = recVM.recommendedLotID {
                         DispatchQueue.main.async {
                             print("Dispatching navigation to \(recommendedLot)")
                             let normalizedLotID = recommendedLot.lowercased().replacingOccurrences(of: " ", with: "_")
@@ -175,11 +168,9 @@ struct LotSelectionView: View {
                                 print("Error: normalizedLotID '\(normalizedLotID)' not recognized!")
                                 break
                             }
-                            // Reset the flag immediately after use.
                             recVM.shouldNavigate = false
                         }
                     }
-                    print("---------------------------------------------")
                 }
                 .onAppear {
                     Task {
@@ -195,7 +186,8 @@ struct LotSelectionView: View {
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture { showSideMenu = false }
 
-                    SideMenuView(showMenu: $showSideMenu, showProfile: $showProfile, showTestPage: $showTestPage)
+                    // UPDATED: Removed showTestPage argument
+                    SideMenuView(showMenu: $showSideMenu, showProfile: $showProfile)
                         .transition(.move(edge: .leading))
                 }
             }

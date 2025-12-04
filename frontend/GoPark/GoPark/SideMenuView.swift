@@ -5,11 +5,13 @@ import FirebaseAuth
 struct SideMenuView: View {
     @Binding var showMenu: Bool
     @Binding var showProfile: Bool
-    @Binding var showTestPage: Bool
-    @EnvironmentObject var authManager: AuthManager // Use EnvironmentObject for AuthManager
+    // REMOVED: @Binding var showTestPage: Bool
+    
+    @EnvironmentObject var authManager: AuthManager
 
     var body: some View {
         VStack(alignment: .leading) {
+            // User Info Header
             HStack {
                 Image(systemName: "person.circle.fill")
                     .resizable()
@@ -29,6 +31,7 @@ struct SideMenuView: View {
             Divider()
                 .padding(.bottom, 20)
 
+            // Menu Options
             Button(action: {
                 showProfile = true
                 showMenu = false
@@ -66,24 +69,14 @@ struct SideMenuView: View {
             }
             .padding(.bottom, 10)
 
-            Button(action: {
-                showTestPage = true
-                showMenu = false
-            }) {
-                HStack {
-                    Image(systemName: "hammer.fill")
-                        .foregroundColor(.purple)
-                    Text("Daniel's Test Page")
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(.bottom, 10)
+            // REMOVED: The Button for "Daniel's Test Page"
 
             Spacer()
 
+            // Logout Button
             Button(action: {
                 authManager.signOut()
-                showMenu = false // Dismiss the side menu after logout
+                showMenu = false
             }) {
                 Text("Log Out")
                     .foregroundColor(.red)
@@ -94,13 +87,14 @@ struct SideMenuView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(radius: 10)
-        .padding(.trailing, 80) // To make it a side menu
+        .padding(.trailing, 80)
     }
 }
 
 struct SideMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        SideMenuView(showMenu: .constant(true), showProfile: .constant(false), showTestPage: .constant(false))
-            .environmentObject(AuthManager.shared) // Provide AuthManager for preview
+        // Updated Preview to only pass 2 bindings
+        SideMenuView(showMenu: .constant(true), showProfile: .constant(false))
+            .environmentObject(AuthManager.shared)
     }
 }
