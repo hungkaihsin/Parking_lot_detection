@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException, Request
+from fastapi import FastAPI, Depends, UploadFile, Body, HTTPException, Request, Path
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -135,7 +135,10 @@ def detect_vehicle_stub():
     }
 
 @app.get("/lots/{lot_id}/spots")
-def get_spots(lot_id: str, db: Session = Depends(get_db)):
+def get_spots(
+    lot_id: str = Path(..., description="The ID of the parking lot to retrieve spot data for."),
+    db: Session = Depends(get_db)
+):
     """
     Returns a list of all stalls in a given lot, including their
     geometry and features.
@@ -154,6 +157,7 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
                 "id": s.id,
                 "lot_id": s.lot_id,
                 "geom_wkt": s.geom_wkt,
+                "is_occupied": s.is_occupied,
                 "features": {
                     "is_ada": s.features.is_ada,
                     "is_ev": s.features.is_ev,
@@ -165,7 +169,11 @@ def get_spots(lot_id: str, db: Session = Depends(get_db)):
     return response
 
 @app.post("/lots/{lot_id}/predict")
-async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(get_db)):
+async def predict_stalls(
+    file: UploadFile,
+    lot_id: str = Path(..., description="The ID of the parking lot (e.g., 'lot_a', 'lot_b')."),
+    db: Session = Depends(get_db)
+):
     """
     Accepts an image of a parking lot, runs stall detection,
     updates stall occupancy states, and logs arrival/departure events.
@@ -191,15 +199,39 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
 
     arrivals = []
     departures = []
+    current_detections = []
 
     for stall in stalls:
         is_now_occupied = stall.id in occupied_ids
+        
+        # Populate current_detections for full state sync
+        if is_now_occupied:
+            data = occupancy_data.get(stall.id, {})
+            vehicle_size = data.get("size", "unknown")
+            center_x = data.get("x")
+            center_y = data.get("y")
+            current_detections.append({
+                "stall_id": stall.id,
+                "size": vehicle_size,
+                "x": center_x,
+                "y": center_y
+            })
+
         if is_now_occupied and not stall.is_occupied:
             # Vehicle has arrived
             stall.is_occupied = True
-            vehicle_size = occupancy_data.get(stall.id, {}).get("size", "unknown")
+            data = occupancy_data.get(stall.id, {})
+            vehicle_size = data.get("size", "unknown")
+            center_x = data.get("x")
+            center_y = data.get("y")
+            
             db.add(models.Event(stall_id=stall.id, event_type="arrive"))
-            arrivals.append({"stall_id": stall.id, "size": vehicle_size})
+            arrivals.append({
+                "stall_id": stall.id,
+                "size": vehicle_size,
+                "x": center_x,
+                "y": center_y
+            })
         elif not is_now_occupied and stall.is_occupied:
             # Vehicle has departed
             stall.is_occupied = False
@@ -215,6 +247,7 @@ async def predict_stalls(lot_id: str, file: UploadFile, db: Session = Depends(ge
         "lot_id": lot_id,
         "arrivals": arrivals,
         "departures": departures,
+        "current_detections": current_detections,
         "occupied_stalls_count": len(occupied_ids),
         "latency_ms": latency_ms # Include latency in response
     }

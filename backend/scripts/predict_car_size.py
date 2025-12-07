@@ -29,9 +29,9 @@ def predict_size(model_path, image_path, train_csv_path):
         return
 
     # Load the model structure
-    model = models.efficientnet_b0(weights=None)
-    num_ftrs = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+    model = models.resnet18(weights=None)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, num_classes)
 
     # Load the trained weights
     try:
