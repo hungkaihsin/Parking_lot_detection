@@ -1,3 +1,57 @@
-.DS_Store
+# Python
+*.pyc
+*.pyo
+*.log
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Env & local config
 .env
-__pycache__
+.env.local
+.env.*.local
+
+# Data & outputs
+backend/data/**
+!backend/data/videos/
+!backend/data/README.md
+!backend/data/processed/.keep
+backend/runs/**
+backend/output/
+backend/logs/*.log
+backend/configs/_sweeps/**
+
+# Models & weights
+backend/models/*.pt
+backend/models/*.onnx
+backend/models/*.engine
+backend/models/*.pth
+backend/models/*.h5
+*.weights
+backend/yolov8n.pt
+backend/yolov8s.pt
+
+# Training artifacts
+runs/detect/
+runs/train/
+runs/val/
+*.csv
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependency analysis
+deptry_report.txt
+requirements-analysis.txt
+
+# Backup files
+*.zip
+*.tar.gz
+*.bak

@@ -1,0 +1,21 @@
+{"text": "I need a spot for a compact car", "expected": {"size": "compact"}}
+{"text": "I drive a small car", "expected": {"size": "compact"}}
+{"text": "looking for a spot for a midsize car", "expected": {"size": "midsize"}}
+{"text": "I have a SUV", "expected": {"size": "suv"}}
+{"text": "I'm driving a truck", "expected": {"size": "truck"}}
+{"text": "I need a spot for a full size car", "expected": {"size": "full"}}
+{"text": "I'm looking for a spot for my large car", "expected": {"size": "full"}}
+{"text": "I need a spot, but not for a compact car", "expected": {"size": "not_compact"}}
+{"text": "no small cars", "expected": {"size": "not_compact"}}
+{"text": "I don't have a midsize car", "expected": {"size": "not_midsize"}}
+{"text": "I'm not driving a suv", "expected": {"size": "not_suv"}}
+{"text": "I don't want a spot for a truck", "expected": {"size": "not_truck"}}
+{"text": "no full size cars", "expected": {"size": "not_full"}}
+{"text": "I'm not looking for a spot for my large car", "expected": {"size": "not_full"}}
+{"text": "compact only", "expected": {"size": "compact_only"}}
+{"text": "only compact", "expected": {"size": "compact_only"}}
+{"text": "compact cars only", "expected": {"size": "compact_only"}}
+{"text": "I need a spot for a compact car only", "expected": {"size": "compact_only"}}
+{"text": "not compact only", "expected": {"size": "not_compact_only"}}
+{"text": "I drive a truck", "expected": {"size": "truck"}}
+{"text": "I drive an SUV", "expected": {"size": "suv"}}

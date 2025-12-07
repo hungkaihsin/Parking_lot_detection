@@ -1,0 +1,132 @@
+{"text": "I need a fast charger for an electric truck", "expected": {"size": "truck", "ev": true, "connector": "dc_fast"}}
+{"text": "midsize spot near me", "expected": {"size": "midsize", "near": true}}
+{"text": "handicap spot, not an EV", "expected": {"ada": true, "ev": false}}
+{"text": "compact ev spot with CCS", "expected": {"size": "compact", "ev": true, "connector": "ccs"}}
+{"text": "truck spot between two empty ev spots", "expected": {"size": "truck", "buffered": true, "ev": true}}
+{"text": "compact car near exit", "expected": {"size": "compact", "near_exit": true}}
+{"text": "midsize spot far from entrance", "expected": {"size": "midsize", "far_from_entrance": true}}
+{"text": "buffered spot for an EV", "expected": {"ev": true, "buffered": true}}
+{"text": "SUV spot with fast charger far away", "expected": {"size": "suv", "connector": "dc_fast", "far_from_entrance": true}}
+{"text": "any spot with a J1772 plug", "expected": {"connector": "j1772"}}
+{"text": "full size buffered near entrance", "expected": {"size": "full", "buffered": true, "near": true}}
+{"text": "SUV spot far away is okay", "expected": {"size": "suv", "far_from_entrance": true}}
+{"text": "truck spot near the door", "expected": {"size": "truck", "near": true}}
+{"text": "midsize car only", "expected": {"size": "midsize_only"}}
+{"text": "disabled parking with DC fast charging", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "small car buffered near front", "expected": {"size": "compact", "buffered": true, "near": true}}
+{"text": "EV spot near the entrance with J1772", "expected": {"ev": true, "near": true, "connector": "j1772"}}
+{"text": "handicap ev with any connector", "expected": {"ada": true, "ev": true}}
+{"text": "truck with CCS", "expected": {"size": "truck", "connector": "ccs"}}
+{"text": "any midsize spot", "expected": {"size": "midsize"}}
+{"text": "SUV ev with J1772", "expected": {"size": "suv", "ev": true, "connector": "j1772"}}
+{"text": "full size close to the entrance", "expected": {"size": "full", "near": true}}
+{"text": "need an ada spot far away", "expected": {"ada": true, "far_from_entrance": true}}
+{"text": "truck ev with buffered space", "expected": {"size": "truck", "ev": true, "buffered": true}}
+{"text": "empty ev spots nearby", "expected": {"ev": true}}
+{"text": "spots with no ev charging", "expected": {"ev": false}}
+{"text": "not an electric vehicle", "expected": {"ev": false}}
+{"text": "parking without fast charger", "expected": {"connector": "no_dc_fast"}}
+{"text": "I don't have an EV, and I need a spot without a fast charger", "expected": {"ev": false, "connector": "no_dc_fast"}}
+{"text": "regular truck spot no ev", "expected": {"size": "truck", "ev": false}}
+{"text": "midsize without charging", "expected": {"size": "midsize", "ev": false}}
+{"text": "compact car not electric", "expected": {"size": "compact", "ev": false}}
+{"text": "suv spot no connector needed", "expected": {"size": "suv"}}
+{"text": "full size without ev capability", "expected": {"size": "full", "ev": false}}
+{"text": "handicap parking no charger", "expected": {"ada": true, "ev": false}}
+{"text": "buffered spot not for ev", "expected": {"buffered": true, "ev": false}}
+{"text": "near exit not entrance", "expected": {"near_exit": true, "near": false}}
+{"text": "far from door no ev", "expected": {"far_from_entrance": true, "ev": false}}
+{"text": "between two non-ev spots", "expected": {"buffered": true, "ev": false}}
+{"text": "no fast charging needed", "expected": {"connector": "no_dc_fast", "ev": false}}
+{"text": "truck spot without j1772", "expected": {"size": "truck", "connector": "no_j1772"}}
+{"text": "compact no ccs required", "expected": {"size": "compact", "connector": "no_ccs"}}
+{"text": "midsize far not near", "expected": {"size": "midsize", "far_from_entrance": true, "near": false}}
+{"text": "suv parking no dc fast", "expected": {"size": "suv", "connector": "no_dc_fast"}}
+{"text": "full size not electric", "expected": {"size": "full", "ev": false}}
+{"text": "ada spot without charger", "expected": {"ada": true, "ev": false}}
+{"text": "buffered but not for ev", "expected": {"buffered": true, "ev": false}}
+{"text": "near but not close", "expected": {"near": true}}
+{"text": "not an ev but buffered", "expected": {"ev": false, "buffered": false}}
+{"text": "no connector just parking", "expected": {}}
+{"text": "ADA spot with a J1772 plug", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "handicap parking with CCS", "expected": {"ada": true, "connector": "ccs"}}
+{"text": "disabled spot with DC fast charging", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "I need an ADA compliant spot with a J1772 connector", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "handicap accessible with CCS charging", "expected": {"ada": true, "connector": "ccs"}}
+{"text": "ADA spot, DC fast charger", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "J1772 for a handicapped spot", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "CCS for an ADA spot", "expected": {"ada": true, "connector": "ccs"}}
+{"text": "DC fast charging for a disabled person", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "I need a J1772 plug and I'm handicapped", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "I'm disabled and need a CCS charger", "expected": {"ada": true, "connector": "ccs"}}
+{"text": "I'm handicapped and I need a DC fast charger", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "J1772 and ADA", "expected": {"ada": true, "connector": "j1772"}}
+{"text": "CCS and handicapped", "expected": {"ada": true, "connector": "ccs"}}
+{"text": "DC fast and disabled", "expected": {"ada": true, "connector": "dc_fast"}}
+{"text": "not an EV spot", "expected": {"ev": false}}
+{"text": "no EV charging", "expected": {"ev": false}}
+{"text": "not ADA accessible", "expected": {"ada": false}}
+{"text": "no J1772 connector", "expected": {"connector": "no_j1772"}}
+{"text": "without CCS", "expected": {"connector": "no_ccs"}}
+{"text": "no DC fast charging", "expected": {"connector": "no_dc_fast", "ev": false}}
+{"text": "not a compact spot", "expected": {"size": "not_compact"}}
+{"text": "not midsize", "expected": {"size": "not_midsize"}}
+{"text": "not full size", "expected": {"size": "not_full"}}
+{"text": "not for SUVs", "expected": {"size": "not_suv"}}
+{"text": "not for trucks", "expected": {"size": "not_truck"}}
+{"text": "not buffered", "expected": {"buffered": false}}
+{"text": "not near the entrance", "expected": {"near": false}}
+{"text": "not far from the entrance", "expected": {"far_from_entrance": false}}
+{"text": "compact car only", "expected": {"size": "compact_only"}}
+{"text": "I drive a truck", "expected": {"size": "truck"}}
+{"text": "I drive an SUV", "expected": {"size": "suv"}}
+{"text": "I'm looking for a spot for my small car", "expected": {"size": "compact"}}
+{"text": "I have a large car", "expected": {"size": "full"}}
+{"text": "I need a spot that is not for compact cars", "expected": {"size": "not_compact"}}
+{"text": "I want a spot that is not for midsize cars", "expected": {"size": "not_midsize"}}
+{"text": "Give me a spot that is not for full size cars", "expected": {"size": "not_full"}}
+{"text": "I need a spot that is not for SUVs", "expected": {"size": "not_suv"}}
+{"text": "I want a spot that is not for trucks", "expected": {"size": "not_truck"}}
+{"text": "I need a spot that is not buffered", "expected": {"buffered": false}}
+{"text": "I want a spot that is not near the entrance", "expected": {"near": false}}
+{"text": "Give me a spot that is not far from the entrance", "expected": {"far_from_entrance": false}}
+{"text": "I need a spot that is not for an EV", "expected": {"ev": false}}
+{"text": "I want a spot that does not have a J1772 connector", "expected": {"connector": "no_j1772"}}
+{"text": "Give me a spot that does not have a CCS connector", "expected": {"connector": "no_ccs"}}
+{"text": "I need a spot that does not have a DC fast charger", "expected": {"connector": "no_dc_fast", "ev": false}}
+{"text": "I want a spot that is not ADA accessible", "expected": {"ada": false}}
+{"text": "Give me a spot that is not for a compact car and not for an EV", "expected": {"size": "not_compact", "ev": false}}
+{"text": "I need a spot that is not for a midsize car and not near the entrance", "expected": {"size": "not_midsize", "near": false}}
+{"text": "I want a spot that is not for a full size car and not far from the entrance", "expected": {"size": "not_full", "far_from_entrance": false}}
+{"text": "Give me a spot that is not for an SUV and not buffered", "expected": {"size": "not_suv", "buffered": false}}
+{"text": "I need a spot that is not for a truck and does not have a J1772 connector", "expected": {"size": "not_truck", "connector": "no_j1772"}}
+{"text": "I want a spot that is not for an EV and does not have a CCS connector", "expected": {"ev": false, "connector": "no_ccs"}}
+{"text": "Give me a spot that is not ADA accessible and does not have a DC fast charger", "expected": {"ada": false, "connector": "no_dc_fast", "ev": false}}
+{"text": "I need a spot for my truck, but not a buffered one", "expected": {"size": "truck", "buffered": false}}
+{"text": "a spot that is not for a small car", "expected": {"size": "not_compact"}}
+{"text": "I'm looking for a spot that is not for a big car", "expected": {"size": "not_full"}}
+{"text": "I need a spot that is not for a truck, and not for an SUV", "expected": {"size": ["not_truck", "not_suv"]}}
+{"text": "a spot without any charging options", "expected": {"ev": false}}
+{"text": "I don't need a fast charger, but I need a J1772", "expected": {"connector": ["no_dc_fast", "j1772"]}}
+{"text": "a spot that is not near the entrance, but not too far either", "expected": {"near": false, "far_from_entrance": false}}
+{"text": "I need a spot for my EV, but not a compact one", "expected": {"ev": true, "size": "not_compact"}}
+{"text": "a spot that is not for a truck and not for an EV", "expected": {"size": "not_truck", "ev": false}}
+{"text": "I need a spot that is not buffered and not near the entrance", "expected": {"buffered": false, "near": false}}
+{"text": "a spot that is not for a midsize car and not for an EV", "expected": {"size": "not_midsize", "ev": false}}
+{"text": "I need a spot that is not for a full size car and not buffered", "expected": {"size": "not_full", "buffered": false}}
+{"text": "a spot that is not for an SUV and not near the entrance", "expected": {"size": "not_suv", "near": false}}
+{"text": "I need a spot that is not for a truck and does not have a CCS connector", "expected": {"size": "not_truck", "connector": "no_ccs"}}
+{"text": "a spot that is not for an EV and does not have a J1772 connector", "expected": {"ev": false, "connector": "no_j1772"}}
+{"text": "I need a handicap spot for my truck that is not an EV", "expected": {"ada": true, "size": "truck", "ev": false}}
+{"text": "I need a spot that is not for a compact car and not for an EV", "expected": {"size": "not_compact", "ev": false}}
+{"text": "I need a spot for my midsize car that is not near the entrance and not an EV", "expected": {"size": "midsize", "near": false, "ev": false}}
+{"text": "I need a spot that is not for a truck and not for an SUV and not an EV", "expected": {"size": ["not_truck", "not_suv"], "ev": false}}
+{"text": "I need a spot for my compct car", "expected": {"size": "compact"}}
+{"text": "I need a spot for my car", "expected": {}}
+{"text": "I want a spot with a heated steering wheel", "expected": {}}
+{"text": "I want a spot with a heated steering wheel and not for an EV", "expected": {"ev": false}}
+{"text": "I want a spot with a heated steering wheel and for an EV", "expected": {"ev": true}}
+{"text": "I want a spot with a heated steering wheel and for an EV and not for a compact car", "expected": {"ev": true, "size": "not_compact"}}
+{"text": "I want a spot with a heated steering wheel and not for an EV and not for a compact car", "expected": {"ev": false, "size": "not_compact"}}
+{"text": "I want a spot with a heated steering wheel and for an EV and for a compact car", "expected": {"ev": true, "size": "compact"}}
+{"text": "I want a spot with a heated steering wheel and for an EV and not for a compact car and not near the entrance", "expected": {"ev": true, "size": "not_compact", "near": false}}

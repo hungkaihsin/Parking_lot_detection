@@ -1,26 +1,80 @@
-from sqlalchemy import Column, String, Float, Boolean, Text, TIMESTAMP, BigInteger, Integer, ForeignKey, JSON
+from sqlalchemy import (
+    Column, String, Float, Boolean, Text, TIMESTAMP, BigInteger,
+    Integer, ForeignKey, JSON, Table
+)
+from sqlalchemy.orm import relationship
 from .db import Base
+import datetime
+from shapely import wkt # Import wkt
 
-# 1) Parking Spots
-class Spot(Base):
-    __tablename__ = "spots"
-    id = Column(String, primary_key=True)       # "A-27" or UUID
+# Association Table for Neighbors (Many-to-Many self-referential)
+stall_neighbors = Table(
+    'stall_neighbors', Base.metadata,
+    Column('stall_id', String, ForeignKey('stalls.id'), primary_key=True),
+    Column('neighbor_id', String, ForeignKey('stalls.id'), primary_key=True)
+)
+
+class Stall(Base):
+    __tablename__ = "stalls"
+    id = Column(String, primary_key=True)  # e.g., "A-27"
     lot_id = Column(String, nullable=False, default="LotA")
-    row = Column(String)
     geom_wkt = Column(Text, nullable=False)
     center_x = Column(Float)
     center_y = Column(Float)
-    ev = Column(Boolean, default=False)
-    connector = Column(String)
-    power_kw = Column(Float)
-    ada = Column(Boolean, default=False)
+    is_occupied = Column(Boolean, default=False, nullable=False)
 
-# 2) Neighbors
-class SpotNeighbor(Base):
-    __tablename__ = "spot_neighbors"
-    spot_id = Column(String, ForeignKey("spots.id"), primary_key=True)
-    left_id = Column(String, ForeignKey("spots.id"))
-    right_id = Column(String, ForeignKey("spots.id"))
+    # Add a private attribute to cache the shapely Polygon object
+    _polygon = None
+
+    @property
+    def polygon(self):
+        """
+        Returns the shapely Polygon object for the stall's geometry.
+        Loads it from geom_wkt and caches it on first access.
+        """
+        if self._polygon is None:
+            self._polygon = wkt.loads(self.geom_wkt)
+        return self._polygon
+
+    # Relationships
+    features = relationship("StallFeature", back_populates="stall", uselist=False, cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="stall")
+    
+    # Many-to-many relationship for neighbors
+    neighbors = relationship(
+        "Stall",
+        secondary=stall_neighbors,
+        primaryjoin=id == stall_neighbors.c.stall_id,
+        secondaryjoin=id == stall_neighbors.c.neighbor_id,
+        backref="neighbor_of"
+    )
+
+
+class StallFeature(Base):
+    __tablename__ = "stall_features"
+    id = Column(String, ForeignKey("stalls.id"), primary_key=True)
+    is_ev = Column(Boolean, default=False)
+    is_ada = Column(Boolean, default=False)
+    connectors = Column(String)  # e.g., "J1772, NACS"
+    width_class = Column(Integer) # e.g., 1 (compact), 2 (standard), 3 (wide)
+    dist_to_entrance = Column(Float)
+
+    # Relationship
+    stall = relationship("Stall", back_populates="features")
+
+
+class Event(Base):
+    __tablename__ = "events"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    stall_id = Column(String, ForeignKey("stalls.id", ondelete="CASCADE"), nullable=False)
+    ts = Column(TIMESTAMP, default=datetime.datetime.utcnow)
+    event_type = Column(String, nullable=False) # e.g., "occupy", "vacate"
+    conf = Column(Float)
+    
+    # Relationship
+    stall = relationship("Stall", back_populates="events")
+
+# --- Keeping other models for now, can be removed if not needed ---
 
 # 3) Runs
 class Run(Base):
@@ -36,8 +90,10 @@ class SpotStatus(Base):
     __tablename__ = "spot_status"
     run_id = Column(String, ForeignKey("runs.run_id"), primary_key=True)
     ts_ms = Column(BigInteger, primary_key=True)
-    spot_id = Column(String, ForeignKey("spots.id"), primary_key=True)
+    # Changed ForeignKey to stalls.id
+    spot_id = Column(String, ForeignKey("stalls.id"), primary_key=True)
     state = Column(String, nullable=False)      # FREE or TAKEN
+    conf = Column(Float)
 
 # 5) Detections
 class Detection(Base):

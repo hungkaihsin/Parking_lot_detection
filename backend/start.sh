@@ -21,5 +21,11 @@ else:
     raise SystemExit("DB not ready after waiting.")
 PY
 
+echo "Applying database migrations..."
 alembic upgrade head
+echo "Database migrations applied."
+
+# Run the idempotent script to initialize parking lot data
+/app/init_stalls.sh
+
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

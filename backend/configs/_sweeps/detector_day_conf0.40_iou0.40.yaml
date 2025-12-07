@@ -1,0 +1,6 @@
+postprocess:
+  conf: 0.4
+  iou: 0.4
+overlay:
+  enabled: true
+  out_dir: data/overlays

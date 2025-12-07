@@ -72,13 +72,192 @@ Open http://127.0.0.1:8000/docs to see Swagger UI.
 
 ---
 
-## 🚦 Endpoints (Week 0 Stubs)
+## 🚦 API Endpoints
 
-- `GET /healthz` → DB health check  
-- `POST /detect/vehicle` → Stub vehicle detection  
-- `GET /lots/{lot_id}/spots` → Query stalls by lot  
-- `POST /recommend` → Stub recommendations  
-- `POST /chat` → Stub chat interface  
+### System Health
+
+#### `GET /healthz`
+
+Checks the operational status of the API, database, and machine learning model.
+
+**Response (Success):**
+```json
+{
+  "status": "ok",
+  "db": "ok",
+  "model_loaded": true,
+  "device": "cpu"
+}
+```
+
+**Response (Degraded):**
+```json
+{
+  "status": "degraded",
+  "db": "error: connection failed",
+  "model_loaded": true,
+  "device": "cpu"
+}
+```
+
+---
+
+### Parking Lot Management
+
+#### `GET /lots/{lot_id}/spots`
+
+Retrieves a detailed list of all parking stalls for a given `lot_id`, including their geometry and features.
+
+**Example:**
+```bash
+curl http://127.0.0.1:8000/lots/main_lot/spots
+```
+
+**Response:**
+```json
+[
+  {
+    "id": "A-01",
+    "lot_id": "main_lot",
+    "geom_wkt": "POLYGON(...)",
+    "features": {
+      "is_ada": false,
+      "is_ev": true,
+      "connectors": "J1772",
+      "width_class": 1,
+      "dist_to_entrance": 15.5
+    }
+  }
+]
+```
+
+#### `POST /lots/{lot_id}/predict`
+
+Analyzes an uploaded image of a parking lot to detect occupied stalls, updates their state in the database, and logs vehicle arrival/departure events.
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:8000/lots/main_lot/predict \
+  -F "file=@/path/to/your/image.jpg"
+```
+
+**Response:**
+```json
+{
+  "lot_id": "main_lot",
+  "arrivals": [
+    {"stall_id": "A-05", "size": "midsize"}
+  ],
+  "departures": ["B-02"],
+  "occupied_stalls_count": 23
+}
+```
+
+---
+
+### Recommendations
+
+#### `POST /recommend`
+
+Recommends the best available parking stalls based on structured criteria or a natural language query.
+
+**1. Natural Language Query:**
+
+Use the `query` field to make requests in plain English.
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "I need a spot for my truck, preferably buffered"}'
+```
+
+**2. Structured Request:**
+
+Provide specific feature requirements for fine-grained control.
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_ev": true,
+    "connector": "J1772",
+    "size_class": 2,
+    "buffered": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "recommendations": [
+    {
+      "stall_id": "C-12",
+      "lot_id": "main_lot",
+      "score": 0.95,
+      "reasons": ["EV charging available (J1772)", "Buffered spot", "Good size match"],
+      "features": {
+        "is_ev": true,
+        "is_ada": false,
+        "connectors": "J1772",
+        "width_class": 2,
+        "dist_to_entrance": 45.2,
+        "size": "full"
+      },
+      "badges": ["EV", "Buffered"]
+    }
+  ]
+}
+```
+
+#### `POST /chat`
+
+A stub endpoint for conversational recommendations.
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Where can I park my SUV?"}'
+```
+
+**Response:**
+```json
+{
+  "query": {"text": "Where can I park my SUV?"},
+  "response": "Closest EV midsize between two empty spots is A-27."
+}
+```
+
+---
+
+### Miscellaneous
+
+#### `POST /detect/vehicle`
+
+A stub endpoint demonstrating a vehicle detection model.
+
+**Response:**
+```json
+{
+  "detections": [
+    {
+      "x1": 120.0, "y1": 200.0, "x2": 320.0, "y2": 400.0,
+      "conf": 0.87, "cls": "car"
+    }
+  ]
+}
+```
+
+#### `GET /housekeeping/download`
+
+Downloads a specified file from the server's designated artifacts directory. Requires a `path` query parameter.
+
+**Example:**
+```bash
+curl "http://127.0.0.1:8000/housekeeping/download?path=logs/recommendations.log" -o recommendations.log
+```
 
 ---
 
@@ -253,4 +432,64 @@ docker compose exec api python app/your_module.py
 2) Rebuild:
 ```bash
 docker compose up -d --build
+```
+
+## Natural Language Parking Recommendations
+
+Use the `/recommend` endpoint to find parking spots using natural language queries. The endpoint accepts a JSON object with a `query` field containing your request in plain English.
+
+### Quick Examples
+
+```bash
+# Basic requests
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "compact car spot"}'
+
+# EV charging
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "ev spot with fast charger"}'
+
+# Accessibility
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "handicap parking near entrance"}'
+
+# Complex requests
+curl -X POST http://127.0.0.1:8000/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "full size buffered ev spot with ccs"}'
+```
+
+### Supported Features
+
+- Vehicle sizes: compact, midsize, suv, full, truck
+- EV charging: ev/electric with dc_fast, ccs, j1772 connectors
+- Accessibility: handicap, ada, disabled 
+- Spot features: buffered, near entrance
+- Negations: not, no, without (e.g., "not an EV")
+
+### Response Example
+
+```json
+{
+  "recommendations": [
+    {
+      "stall_id": "C-12",
+      "lot_id": "main_lot",
+      "score": 0.95,
+      "reasons": ["EV charging available (J1772)", "Buffered spot", "Good size match"],
+      "features": {
+        "is_ev": true,
+        "is_ada": false,
+        "connectors": "J1772",
+        "width_class": 2,
+        "dist_to_entrance": 45.2,
+        "size": "full"
+      },
+      "badges": ["EV", "Buffered"]
+    }
+  ]
+}
 ```
