@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authManager.userSession == nil {
-                NavigationView {
+                NavigationStack {
                     LoginView()
                 }
             } else {

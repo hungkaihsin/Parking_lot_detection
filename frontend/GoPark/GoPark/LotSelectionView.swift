@@ -14,25 +14,11 @@ struct LotSelectionView: View {
     @State private var showProfile = false
     // REMOVED: @State private var showTestPage = false
     
-    // 3. State for programmatic navigation (isActive pattern)
-    @State private var isLotAActive = false
-    @State private var isLotBActive = false
-    @State private var isLotCActive = false
-    @State private var isLotDActive = false
-    @State private var isLotEActive = false
+
 
     var body: some View {
-        NavigationView {
+        NavigationStack(path: $recVM.navigationPath) {
             ZStack {
-                // Hidden Navigation Links for Programmatic Navigation
-                VStack {
-                    NavigationLink(destination: ParkingLotView(lotName: "lot_a", recVM: recVM), isActive: $isLotAActive) { EmptyView() }
-                    NavigationLink(destination: ParkingLotView(lotName: "lot_b", recVM: recVM), isActive: $isLotBActive) { EmptyView() }
-                    NavigationLink(destination: ParkingLotView(lotName: "lot_c", recVM: recVM), isActive: $isLotCActive) { EmptyView() }
-                    NavigationLink(destination: ParkingLotView(lotName: "lot_d", recVM: recVM), isActive: $isLotDActive) { EmptyView() }
-                    NavigationLink(destination: ParkingLotView(lotName: "lot_e", recVM: recVM), isActive: $isLotEActive) { EmptyView() }
-                }
-                .hidden()
 
                 List {
                     // Section 1: The AI Tool
@@ -72,7 +58,7 @@ struct LotSelectionView: View {
                                     // Set target and trigger navigation
                                     recVM.recommendedLotID = rec.lotId
                                     recVM.recommendedStallID = rec.stallId
-                                    recVM.shouldNavigate = true
+                                    recVM.navigationPath.append(.parkingLot(lotName: rec.lotId))
                                 }) {
                                     HStack {
                                         VStack(alignment: .leading) {
@@ -108,19 +94,19 @@ struct LotSelectionView: View {
                     
                     // Section 3: The Parking Lots
                     Section(header: Text("Available Parking Lots")) {
-                        Button(action: { isLotAActive = true }) {
+                        Button(action: { recVM.navigationPath.append(.parkingLot(lotName: "lot_a")) }) {
                             Text("Parking Lot A").foregroundColor(.primary)
                         }
-                        Button(action: { isLotBActive = true }) {
+                        Button(action: { recVM.navigationPath.append(.parkingLot(lotName: "lot_b")) }) {
                             Text("Parking Lot B").foregroundColor(.primary)
                         }
-                        Button(action: { isLotCActive = true }) {
+                        Button(action: { recVM.navigationPath.append(.parkingLot(lotName: "lot_c")) }) {
                             Text("Parking Lot C").foregroundColor(.primary)
                         }
-                        Button(action: { isLotDActive = true }) {
+                        Button(action: { recVM.navigationPath.append(.parkingLot(lotName: "lot_d")) }) {
                             Text("Parking Lot D").foregroundColor(.primary)
                         }
-                        Button(action: { isLotEActive = true }) {
+                        Button(action: { recVM.navigationPath.append(.parkingLot(lotName: "lot_e")) }) {
                             Text("Parking Lot E").foregroundColor(.primary)
                         }
                     }
@@ -149,32 +135,16 @@ struct LotSelectionView: View {
                     AIChatView(recVM: recVM, isPresented: $showChat)
                 }
                 // 4. Trigger navigation when the VM's flag is set
-                .onChange(of: recVM.shouldNavigate) { shouldNavigate in
-                    print("--- DEBUG: LotSelectionView onChange detected ---")
-                    print("recVM.shouldNavigate is: \(shouldNavigate)")
-                    
-                    if shouldNavigate, let recommendedLot = recVM.recommendedLotID {
-                        DispatchQueue.main.async {
-                            print("Dispatching navigation to \(recommendedLot)")
-                            let normalizedLotID = recommendedLot.lowercased().replacingOccurrences(of: " ", with: "_")
-                            
-                            switch normalizedLotID {
-                            case "lot_a", "lota": isLotAActive = true
-                            case "lot_b", "lotb": isLotBActive = true
-                            case "lot_c", "lotc": isLotCActive = true
-                            case "lot_d", "lotd": isLotDActive = true
-                            case "lot_e", "lote": isLotEActive = true
-                            default:
-                                print("Error: normalizedLotID '\(normalizedLotID)' not recognized!")
-                                break
-                            }
-                            recVM.shouldNavigate = false
-                        }
-                    }
-                }
+
                 .onAppear {
                     Task {
                         await recVM.fetchTopRecommendations(uid: authManager.userSession?.uid)
+                    }
+                }
+                .navigationDestination(for: NavigationDestination.self) { destination in
+                    switch destination {
+                    case .parkingLot(let lotName):
+                        ParkingLotView(lotName: lotName, recVM: recVM)
                     }
                 }
             }

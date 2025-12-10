@@ -2,6 +2,10 @@ import Foundation
 import Combine
 import SwiftUI
 
+enum NavigationDestination: Hashable, Codable {
+    case parkingLot(lotName: String)
+}
+
 @MainActor
 class RecommendationViewModel: ObservableObject {
     @Published var recommendations: [Recommendation] = []
@@ -12,7 +16,7 @@ class RecommendationViewModel: ObservableObject {
     @Published var recommendedStallID: String?
     @Published var recommendedLotID: String?
     @Published var aiResponseReason: String?
-    @Published var shouldNavigate: Bool = false
+    @Published var navigationPath: [NavigationDestination] = []
 
     func getRecommendation(lotName: String, vehicleType: String, wantsEV: Bool) async {
         // Keeps existing logic for ProfileView compatibility (if used)
@@ -78,7 +82,7 @@ class RecommendationViewModel: ObservableObject {
         self.aiResponseReason = nil
         self.recommendedStallID = nil
         self.recommendedLotID = nil
-        self.shouldNavigate = false
+
         
         let requestBody = RecommendationRequest(
             query: query,
