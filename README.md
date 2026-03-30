@@ -101,6 +101,6 @@ The FastAPI server will be running. Open http://127.0.0.1:8000/docs to see the S
 ## Contact & Authors
 
 This project was collaboratively built by:
-- **Kai-Hsin (Daniel) Hung** - k_hung2@u.pacific.edu 
+- **Kai-Hsin (Daniel) Hung** - k_hung2@u.pacific.edu | [LinkedIn](https://www.linkedin.com/in/kai-hsin-hung/)
 - **Gia Huy (Jerry) Phung** - g_phung@u.pacific.edu | [LinkedIn](https://www.linkedin.com/in/huy-phung-gia/)
 - **Franco Lorenzino** - f_lorenzino@u.pacific.edu | [LinkedIn](https://www.linkedin.com/in/franco-lorenzino-05721b209/)
