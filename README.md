@@ -1,495 +1,106 @@
-# 🚗 Parking Lot Recommender (Phase 1)
+# GoPark (Parking Lot Recommender)
 
-This project uses **FastAPI**, **PostgreSQL (via Docker)**, and **Alembic** to build the backend service for a parking lot recommender system.
+> An AI-powered application that helps drivers find the best available parking spots using real-time image analysis, natural language processing, and detailed stall properties (like EV charging, ADA access, and size class). 
 
----
+## Tech Stack
 
-## 📦 Setup Instructions
+![Python](https://img.shields.io/badge/Language-Python-3776AB)
+![Swift](https://img.shields.io/badge/Language-Swift-F05138)
+![SQL](https://img.shields.io/badge/Language-SQL-4479A1)
+![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791)
+![Alembic](https://img.shields.io/badge/Migrations-Alembic-6BA81E)
+![SwiftUI](https://img.shields.io/badge/Frontend-SwiftUI-007AFF)
+![Vision/NLP](https://img.shields.io/badge/AI-Vision%20%26%20NLP-FF6F00)
+![Docker](https://img.shields.io/badge/Infrastructure-Docker-2496ED)
 
-### 1. Clone the repo
+## Key Features
+
+- **Real-time Occupancy:** Analyzes images of parking lots to dynamically detect free or occupied stalls in real-time.
+- **Natural Language Spot Matching:** Understands plain English queries (e.g., "Where can I park my SUV?") to recommend the closest and best fitting parking spot.
+- **Structured Recommendations:** Accurately matches users with stalls matching critical needs such as EV chargers, ADA compliant spots, or specific vehicle size classes.
+- **Dynamic iOS Interactive Map:** Renders an intuitive static image layout overlaid with automatically updating status polygons indicating availability.
+- **User Profiling System:** Saves user specifics (like vehicle type) for personalized, automatic smart spotting.
+
+## Results & Performance
+
+- **High Precision Object Detection:** Utilizes YOLOv8-Nano, achieving an exceptional **97.2% mAP@0.5** with an ultra-low inference latency of **5.4 ms**. 
+- **Low-Light / Night Optimization:** Custom HSV-augmented models delivered a **5.3-fold increase** in vehicle detection recall in challenging nighttime environments.
+- **Lightning Fast NLP:** Our local, rule-based natural language parser achieves a **96% constraint extraction accuracy** with **< 2 ms latency** (approximately 500x faster than traditional LLMs like GPT-4).
+- **Sub-50ms End-to-End Latency:** The complete pipeline—spanning raw image ingestion, NLP query parsing, object detection, and recommendation ranking—executes in just **33.96 ms** on average on consumer edge hardware.
+- **98% Constraint Satisfaction Rate:** The engine correctly filters and ranks spots meeting all strict user constraints (e.g., ADA accessibility, EV charging, and vehicle size) across rigorous edge-case testing.
+
+## Awards & Recognition 
+
+- **IntelliSys 2026:** Our paper, *"GoPark: An AI-Powered Parking Recommendation System,"* has been officially accepted for presentation and publication at the **Intelligent Systems Conference (IntelliSys) 2026** (September 3–4, 2026 in Amsterdam, The Netherlands). The proceedings will be published in the Springer series *"Lecture Notes in Networks and Systems"*. [Read the full paper here](./docs/Go_park.pdf)
+
+## How to Run
+
+### 1. Backend Setup
+
 ```bash
+# Clone the repository
 git clone <your-repo-url>
 cd backend   # IMPORTANT: run all commands from inside the backend folder
-```
 
-### 2. Install Docker
-- Download and install **Docker Desktop**: https://www.docker.com/products/docker-desktop/
-- Open Docker Desktop before running any commands.  
-  (You should see the whale icon running in your menu bar/system tray.)
-
-### 3. Configure environment variables
-Copy `.env.example` → `.env`:
-```bash
+# Configure environment variables
 cp .env.example .env
-```
+# Edit .env and ensure DATABASE_URL uses the Docker service name 'db' if running via Docker:
+# DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
 
-Then edit `.env` if needed (DB user/password must match your Docker config):
-```
-DATABASE_URL=postgresql+psycopg2://postgres:password@localhost:5432/parkinglot
-```
+# Start Docker Services (API + PostgreSQL)
+docker compose up -d --build
 
-> ⚠️ Do not commit `.env` to GitHub. Only `.env.example` is shared.
-
-> **If you are running API + DB entirely in Docker (recommended):** use the Docker service name `db` instead of `localhost`:
->
-> ```
-> DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
-> ```
->
-> And run Alembic inside the container:
-> ```bash
-> docker compose up -d --build
-> docker compose exec api alembic upgrade head
-> ```
-
-### 4. Start PostgreSQL with Docker
-Make sure Docker Desktop is running, then (from inside `backend/`):
-```bash
-docker compose up -d db
-```
-This starts a Postgres 15 database on `localhost:5432` (mapped from the `db` container).
-
-### 5. Initialize database schema (Alembic)
-**Recommended (Docker):**
-```bash
-docker compose up -d --build          # builds/starts api + db if not running
+# Initialize Database Schema (Alembic)
 docker compose exec api alembic upgrade head
 ```
 
-**If you intentionally run Alembic on the host (hybrid mode):**
-```bash
-alembic upgrade head
-```
+The FastAPI server will be running. Open http://127.0.0.1:8000/docs to see the Swagger UI.
 
-### 6. Run the FastAPI server
-- **All-Docker (recommended):** the API container starts Uvicorn automatically via `start.sh`.
-- **Host run (hybrid mode):**
-  ```bash
-  uvicorn app.main:app --reload --port 8000
-  ```
+### 2. Frontend Setup
 
-Open http://127.0.0.1:8000/docs to see Swagger UI.
+1. Open Xcode.
+2. Open the project at `frontend/GoPark/GoPark.xcodeproj`.
+3. Select an iOS Simulator target (e.g., iPhone 15 Pro).
+4. Build and Run the application (`Cmd + R`).
 
 ---
 
-## 🚦 API Endpoints
+## Additional API Setup & Information
 
-### System Health
+<details>
+<summary>Click to view detailed Backend API documentation & workflows</summary>
 
-#### `GET /healthz`
+### API Endpoints
 
-Checks the operational status of the API, database, and machine learning model.
+#### System Health
+- **`GET /healthz`**: Checks the operational status of the API, database, and machine learning model.
 
-**Response (Success):**
-```json
-{
-  "status": "ok",
-  "db": "ok",
-  "model_loaded": true,
-  "device": "cpu"
-}
-```
+#### Parking Lot Management
+- **`GET /lots/{lot_id}/spots`**: Retrieves a detailed list of all parking stalls for a given `lot_id`, including their geometry and features.
+- **`POST /lots/{lot_id}/predict`**: Analyzes an uploaded image of a parking lot to detect occupied stalls, updates their state in the DB, and logs vehicle events.
 
-**Response (Degraded):**
-```json
-{
-  "status": "degraded",
-  "db": "error: connection failed",
-  "model_loaded": true,
-  "device": "cpu"
-}
-```
+#### Recommendations
+- **`POST /recommend`**: Recommends the best available parking stalls based on structured criteria or a natural language query.
+  - *Natural Language Query*: `{"query": "I need a spot for my truck, preferably buffered"}`
+  - *Structured Request*: `{"is_ev": true, "connector": "J1772", "size_class": 2, "buffered": true}`
+- **`POST /chat`**: A stub endpoint for conversational recommendations.
 
----
-
-### Parking Lot Management
-
-#### `GET /lots/{lot_id}/spots`
-
-Retrieves a detailed list of all parking stalls for a given `lot_id`, including their geometry and features.
-
-**Example:**
-```bash
-curl http://127.0.0.1:8000/lots/main_lot/spots
-```
-
-**Response:**
-```json
-[
-  {
-    "id": "A-01",
-    "lot_id": "main_lot",
-    "geom_wkt": "POLYGON(...)",
-    "features": {
-      "is_ada": false,
-      "is_ev": true,
-      "connectors": "J1772",
-      "width_class": 1,
-      "dist_to_entrance": 15.5
-    }
-  }
-]
-```
-
-#### `POST /lots/{lot_id}/predict`
-
-Analyzes an uploaded image of a parking lot to detect occupied stalls, updates their state in the database, and logs vehicle arrival/departure events.
-
-**Example:**
-```bash
-curl -X POST http://127.0.0.1:8000/lots/main_lot/predict \
-  -F "file=@/path/to/your/image.jpg"
-```
-
-**Response:**
-```json
-{
-  "lot_id": "main_lot",
-  "arrivals": [
-    {"stall_id": "A-05", "size": "midsize"}
-  ],
-  "departures": ["B-02"],
-  "occupied_stalls_count": 23
-}
-```
-
----
-
-### Recommendations
-
-#### `POST /recommend`
-
-Recommends the best available parking stalls based on structured criteria or a natural language query.
-
-**1. Natural Language Query:**
-
-Use the `query` field to make requests in plain English.
-
-**Example:**
-```bash
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "I need a spot for my truck, preferably buffered"}'
-```
-
-**2. Structured Request:**
-
-Provide specific feature requirements for fine-grained control.
-
-**Example:**
-```bash
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{
-    "is_ev": true,
-    "connector": "J1772",
-    "size_class": 2,
-    "buffered": true
-  }'
-```
-
-**Response:**
-```json
-{
-  "recommendations": [
-    {
-      "stall_id": "C-12",
-      "lot_id": "main_lot",
-      "score": 0.95,
-      "reasons": ["EV charging available (J1772)", "Buffered spot", "Good size match"],
-      "features": {
-        "is_ev": true,
-        "is_ada": false,
-        "connectors": "J1772",
-        "width_class": 2,
-        "dist_to_entrance": 45.2,
-        "size": "full"
-      },
-      "badges": ["EV", "Buffered"]
-    }
-  ]
-}
-```
-
-#### `POST /chat`
-
-A stub endpoint for conversational recommendations.
-
-**Example:**
-```bash
-curl -X POST http://127.0.0.1:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Where can I park my SUV?"}'
-```
-
-**Response:**
-```json
-{
-  "query": {"text": "Where can I park my SUV?"},
-  "response": "Closest EV midsize between two empty spots is A-27."
-}
-```
-
----
-
-### Miscellaneous
-
-#### `POST /detect/vehicle`
-
-A stub endpoint demonstrating a vehicle detection model.
-
-**Response:**
-```json
-{
-  "detections": [
-    {
-      "x1": 120.0, "y1": 200.0, "x2": 320.0, "y2": 400.0,
-      "conf": 0.87, "cls": "car"
-    }
-  ]
-}
-```
-
-#### `GET /housekeeping/download`
-
-Downloads a specified file from the server's designated artifacts directory. Requires a `path` query parameter.
-
-**Example:**
-```bash
-curl "http://127.0.0.1:8000/housekeeping/download?path=logs/recommendations.log" -o recommendations.log
-```
-
----
-
-## 📑 Dependencies
-
-- Python libraries are installed **inside the Docker image** from `requirements.txt` (via the `Dockerfile`).  
-- To add a package permanently:
-  ```bash
-  # add it to requirements.txt, then rebuild
-  docker compose up -d --build
-  ```
-- For a quick test only (won’t persist after rebuild):
-  ```bash
-  docker compose exec api pip install <package>
-  ```
-
----
-
-## 🔄 Daily Workflow
-
-1. Start services:
-   ```bash
-   docker compose up -d
-   ```
-2. Run migrations (only if models changed):
+### Daily Workflow
+1. **Start services**: `docker compose up -d`
+2. **Run migrations**:
    ```bash
    docker compose exec api alembic revision --autogenerate -m "update schema"
    docker compose exec api alembic upgrade head
    ```
-3. Tail API logs (hot reload is enabled):
-   ```bash
-   docker compose logs -f api
-   ```
-4. Test endpoints at:
-   - `/healthz` → check DB
-   - `/docs` → Swagger UI
-5. Stop services:
-   - `docker compose down`  
-   - Add `-v` to wipe DB data: `docker compose down -v` (⚠ irreversibly deletes the database volume)
+3. **Tail API logs**: `docker compose logs -f api`
+4. **Stop services**: `docker compose down` (Add `-v` to wipe DB data).
 
----
+</details>
 
-## 🧪 Quick DB Checks
+## Contact & Authors
 
-Non-interactive:
-```bash
-docker compose exec db psql -U postgres -d parkinglot
-```
-
-Interactive:
-```bash
-docker compose exec db psql -U postgres -d parkinglot
-\dt         -- list tables
-\d <table>  -- describe a table
-\q          -- quit
-```
-
----
-
-## 🧰 Notes about Docker files
-
-- **Dockerfile** builds the API image, installs `requirements.txt`, and includes tools needed for Postgres/Alembic.
-- **start.sh** waits for the DB, runs `alembic upgrade head`, then starts Uvicorn with reload for development.
-- **docker-compose.yml** defines `db`, `api`, and (optionally) Adminer on port `8080`.
-- Keep `.env` out of git; commit `.env.example` with safe defaults.
-
-
----
-
-## 🐳 Docker-Only Workflow (no local Python)
-
-> Use this if you want to run **everything inside containers**.
-
-### Start API + Postgres
-```bash
-# from backend/
-docker compose up -d --build
-```
-This builds the API image and starts `db` (Postgres) and `api` (FastAPI). The API startup script waits for DB, runs migrations, then launches Uvicorn.
-
-### Run commands inside the API container
-```bash
-# open a shell in the api container
-docker compose exec api bash
-
-# now you're inside Docker:
-alembic current
-alembic revision --autogenerate -m "update schema"
-alembic upgrade head
-pytest -q              # if you have tests
-python app/seed.py     # run any one-off scripts
-exit
-```
-
-### Check the DB (inside its container)
-```bash
-docker compose exec db psql -U postgres -d parkinglot
-```
-
-### Logs & hot reload
-```bash
-docker compose logs -f api
-```
-
-### Stop / clean
-```bash
-docker compose down        # stop
-docker compose down -v     # stop and DELETE DB volume (wipes data)
-```
-
----
-
-## 📁 Recommended Repo Layout (data & models)
-
-Keep big datasets **outside** `backend/` and small deployable weights **inside** `backend/`:
-
-```
-repo-root/
-├─ backend/
-│  ├─ app/
-│  ├─ models/
-│  │  ├─ det/
-│  │  │  └─ veh_v0/
-│  │  │     ├─ weights/
-│  │  │     │  └─ best.pt
-│  │  │     ├─ data.yaml
-│  │  │     ├─ params.json
-│  │  │     └─ metrics.json
-│  └─ .env
-├─ data/
-│  ├─ raw/
-│  │  └─ car_spec_1945_2020.csv
-│  └─ processed/
-│     └─ car_specs_v0_filtered.csv
-├─ training/
-│  └─ runs/               # large training artifacts
-└─ notebooks/
-```
-
-**.env examples**
-```
-# backend/.env
-# For API
-DATABASE_URL=postgresql+psycopg2://postgres:password@db:5432/parkinglot
-MODEL_DIR=backend/models/det/veh_v0/weights
-CAR_SPEC_PATH=./data/processed/car_specs_v0_filtered.csv
-# For Postgres container
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_DB=parkinglot
-```
-
-**.gitignore hints**
-```
-data/raw/*
-training/runs/*
-**/weights/*.pt
-**/weights/*.onnx
-**/weights/*.engine
-.env
-```
-
----
-
-## 🧪 One-off: run a Python module inside Docker (no shell)
-```bash
-docker compose exec api python app/your_module.py
-```
-
-## 🔧 Install new Python deps (persistently)
-1) Add the package to `backend/requirements.txt`  
-2) Rebuild:
-```bash
-docker compose up -d --build
-```
-
-## Natural Language Parking Recommendations
-
-Use the `/recommend` endpoint to find parking spots using natural language queries. The endpoint accepts a JSON object with a `query` field containing your request in plain English.
-
-### Quick Examples
-
-```bash
-# Basic requests
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "compact car spot"}'
-
-# EV charging
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "ev spot with fast charger"}'
-
-# Accessibility
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "handicap parking near entrance"}'
-
-# Complex requests
-curl -X POST http://127.0.0.1:8000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"query": "full size buffered ev spot with ccs"}'
-```
-
-### Supported Features
-
-- Vehicle sizes: compact, midsize, suv, full, truck
-- EV charging: ev/electric with dc_fast, ccs, j1772 connectors
-- Accessibility: handicap, ada, disabled 
-- Spot features: buffered, near entrance
-- Negations: not, no, without (e.g., "not an EV")
-
-### Response Example
-
-```json
-{
-  "recommendations": [
-    {
-      "stall_id": "C-12",
-      "lot_id": "main_lot",
-      "score": 0.95,
-      "reasons": ["EV charging available (J1772)", "Buffered spot", "Good size match"],
-      "features": {
-        "is_ev": true,
-        "is_ada": false,
-        "connectors": "J1772",
-        "width_class": 2,
-        "dist_to_entrance": 45.2,
-        "size": "full"
-      },
-      "badges": ["EV", "Buffered"]
-    }
-  ]
-}
-```
+This project was collaboratively built by:
+- **Kai-Hsin (Daniel) Hung** - k_hung2@u.pacific.edu 
+- **Gia Huy (Jerry) Phung** - g_phung@u.pacific.edu | [LinkedIn](https://www.linkedin.com/in/huy-phung-gia/)
+- **Franco Lorenzino** - f_lorenzino@u.pacific.edu | [LinkedIn](https://www.linkedin.com/in/franco-lorenzino-05721b209/)
